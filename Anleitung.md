@@ -3,12 +3,12 @@
 ## Erstellen eines Accounts bei Azure
 1. Erstellen einer Ressourcengruppe: SpatialResourceGroupCB
 2. Erstellen Spatial Anchors Ressource: SpatialResourceCB - Spatial Anchors Account
-  * Standort: USA Ost 2
-  * Account-ID: 9925e31a-01af-478d-9be2-f5610d6ab3b1
-  * Key: 2NBDrkDMB6CL/0Vg4iPuPSi3R1zozO6nSww5O/XY0VM=
-  * Sharing URL: https://spatialanchorswebappcb.azurewebsites.net/index.html
+    * Standort: USA Ost 2
+    * Account-ID: 9925e31a-01af-478d-9be2-f5610d6ab3b1
+    * Key: 2NBDrkDMB6CL/0Vg4iPuPSi3R1zozO6nSww5O/XY0VM=
+    * Sharing URL: https://spatialanchorswebappcb.azurewebsites.net/index.html
  3. Erstellen eines App-Service (Web App): SpatialAnchorsWebAppCB
-  * Referenz zur Ressourcengruppe und zum App Service-Plan
+    * Referenz zur Ressourcengruppe und zum App Service-Plan
 
 ## Voraussetzung:
 * Unity Version 2019.1 oder höher
@@ -23,7 +23,7 @@
 
 ## Veröffentlichen der SharingService Solution
 * Öffnen des SharingServiceProjekt in Visual Studio
-** Wichtig **: Es muss die SharingService.sln geöffnet werden in Visual Studio
+**Wichtig**: Es muss die SharingService.sln geöffnet werden in Visual Studio
 * In der Projektmappe "SharingService" befindet sich das Objekt "SharingService"
 * Dies mit Doppelclick öffnen und > Erstellen > "SharingService" veröffentlichen clicken
 * Danach bei 'App Service' auf "Vorhandenes Element auswählen" und die zuvor erstelle WebApp auswählen
@@ -44,33 +44,33 @@
 # Demo
 
 1. Basic Demo
-  - Create Azure Spatial Anchors Session
-  - Config Azure Spatial Anchors Session 
-  - Start Azure Spatial Anchors Session 
-  - Create Local Anchors and save to cloud
-  - Moving Device to capture enviroment data
-  - Stop Azure Spatial Anchors Session 
-  - Create Azure Spatial Anchors Session for query
-  - Start Azure Spatial Anchors Session for query
-  - Looking for Anchors
-  - Delete Anchors
-  - Stop Azure Spatial Anchors Session for query
-  - Restart Demo
+    - Create Azure Spatial Anchors Session
+    - Config Azure Spatial Anchors Session 
+    - Start Azure Spatial Anchors Session 
+    - Create Local Anchors and save to cloud
+    - Moving Device to capture enviroment data
+    - Stop Azure Spatial Anchors Session 
+    - Create Azure Spatial Anchors Session for query
+    - Start Azure Spatial Anchors Session for query
+    - Looking for Anchors
+    - Delete Anchors
+    - Stop Azure Spatial Anchors Session for query
+    - Restart Demo
 
 2. Local Shared Demo: Create & Share / Locate Anchors
-  - Create Cloud Spatial Anchors Session
-  - Config Cloud Spatial Anchors Session
-  - Start Cloud Spatial Anchors Session
-  - Create Local Anchors and save to cloud
-  - Moving Device to capture enviroment data
-  - Stop Cloud Spatial Anchors Session
+    - Create Cloud Spatial Anchors Session
+    - Config Cloud Spatial Anchors Session
+    - Start Cloud Spatial Anchors Session
+    - Create Local Anchors and save to cloud
+    - Moving Device to capture enviroment data
+    - Stop Cloud Spatial Anchors Session
 
-  - Input Anchors Number: X
-  - Create Cloud Spatial Anchors Session
-  - Create Cloud Spatial Anchors Session for query
-  - Start Cloud Spatial Anchors Session for query
-  - Looking for anchors
-  - Stop Create Cloud Spatial Anchors Session for query
+    - Input Anchors Number: X
+    - Create Cloud Spatial Anchors Session
+    - Create Cloud Spatial Anchors Session for query
+    - Start Cloud Spatial Anchors Session for query
+    - Looking for anchors
+    - Stop Create Cloud Spatial Anchors Session for query
 
 * Version Control in Unity: 
 Mit den #define Operator können if-Statements für bestimmte Versionen oder OS bestimmt werden
