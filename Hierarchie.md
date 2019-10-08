@@ -1,5 +1,5 @@
-#Hierarchie
-##Camera Parent
+# Hierarchie
+## Camera Parent
     - Script: XR Camera Picker
         Prefabs:
         > HoloLensCamera
@@ -27,12 +27,12 @@
 Das Prefab CameraParent (Camera Prefab) ist zur Erkennung der Oberflächen und für die AR Kamera vom Handy
 
 
-##AzureSpatialAnchors
+## AzureSpatialAnchors
     - Script: Azure Handling (Demo ect)
     - Script: Spatial Anchors Manager
 
-##EventSystem
+## EventSystem
 
-##UX Parent
+## UX Parent
 
-##Cursor
+## Cursor

@@ -1,6 +1,6 @@
-﻿#Einrichten für Azure Spatial Anchors:
+﻿# Einrichten für Azure Spatial Anchors:
 
-##Erstellen eines Accounts bei Azure
+## Erstellen eines Accounts bei Azure
 	1. Erstellen einer Ressourcengruppe: SpatialResourceGroupCB
 	2. Erstellen Spatial Anchors Ressource: SpatialResourceCB - Spatial Anchors Account
 		Standort: USA Ost 2
@@ -10,18 +10,18 @@
 	3. Erstellen eines App-Service (Web App): SpatialAnchorsWebAppCB
 		Referenz zur Ressourcengruppe und zum App Service-Plan
 
-##Voraussetzung:
+## Voraussetzung:
 	Unity Version 2019.1 oder höher
 	Git für Windows
 	Android Studio mit Android ADK und NDK, CMaker, ...
 	.NET Core 2.2 SDK
 	Windows Computer mit ASP.NET- und Webentwicklungs-Workload, mit Visual Studio 2017 oder höher
 
-##Herunterladen des Beispiels von Azure
+## Herunterladen des Beispiels von Azure
 	Im Zielordner mit "Git BASH here" 
 	--> "git clone https://github.com/Azure/azure-spatial-anchors-samples.git"
 
-##Veröffentlichen der SharingService Solution
+## Veröffentlichen der SharingService Solution
 	Öffnen des SharingServiceProjekt in Visual Studio
 	Wichtig: Es muss die SharingService.sln geöffnet werden in Visual Studio
 	In der Projektmappe "SharingService" befindet sich das Objekt "SharingService"
@@ -29,18 +29,18 @@
 	Danach bei 'App Service' auf "Vorhandenes Element auswählen" und die zuvor erstelle WebApp auswählen
 	Danach sollte sich im Browser die Webapp öffnen mit eine index.html 
 
-..* In Unity muss dann das Projekt geöffnet werden: Version Höher als Unity 2019.1.10f !!!
+* In Unity muss dann das Projekt geöffnet werden: Version Höher als Unity 2019.1.10f !!!
 
-..* Einfügen der Account ID und Key in AzureSpatialAnchors.SDK > Resources > SpatialAnchorConfig
+* Einfügen der Account ID und Key in AzureSpatialAnchors.SDK > Resources > SpatialAnchorConfig
 
-..* Einfügen der Sharing URL in AzureSpatialAnchors.Examples > Resources > SpatialAnchorsSamplesConfig
+* Einfügen der Sharing URL in AzureSpatialAnchors.Examples > Resources > SpatialAnchorsSamplesConfig
 	Achtung: Bei der URL muss die Endung /index.html durch /api/anchors ersetzt werden
-..* In den Build Settings muss die Plattform zu Android gewechselt werden
+* In den Build Settings muss die Plattform zu Android gewechselt werden
 	Evtl müssen alles Assets neu Importiert werden: Assets > Re-import all 
 
-..* Mit Samsung S9+ funktioniert alles, mit Samsung Tablet A nicht! --> Gerät muss AR Core Fähig sein!
+* Mit Samsung S9+ funktioniert alles, mit Samsung Tablet A nicht! --> Gerät muss AR Core Fähig sein!
 
-#Demo
+# Demo
 
 1. Basic Demo
 	- Create Azure Spatial Anchors Session
@@ -71,19 +71,19 @@
 	- Looking for anchors
 	- Stop Create Cloud Spatial Anchors Session for query
 
-Version Control in Unity: 
+* Version Control in Unity: 
 Mit den #define Operator können if-Statements für bestimmte Versionen oder OS bestimmt werden
 https://docs.unity3d.com/Manual/PlatformDependentCompilation.html
 
-*#if UNITY_ANDROID
+#if UNITY_ANDROID
 	debug.Log("Das wird bei einem Android-Gerät ausgegeben");
-*#endif
+#endif
 
-*#if UNITY_IOS
+#if UNITY_IOS
 	debug.Log("Das wird bei einem iOS-Gerät ausgegeben");
-*#endif
+#endif
 
 Das ist auch für Unity-Versionen möglich:
-*#if UNITY_5_0_1
+#if UNITY_5_0_1
 	debug.Log("Das wird nur ausgegeben bei Unity Version 5.0.1");
-*#endif
+#endif
