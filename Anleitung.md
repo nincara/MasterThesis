@@ -3,31 +3,31 @@
 ## Erstellen eines Accounts bei Azure
 	1. Erstellen einer Ressourcengruppe: SpatialResourceGroupCB
 	2. Erstellen Spatial Anchors Ressource: SpatialResourceCB - Spatial Anchors Account
-		Standort: USA Ost 2
-		Account-ID: 9925e31a-01af-478d-9be2-f5610d6ab3b1
-		Key: 2NBDrkDMB6CL/0Vg4iPuPSi3R1zozO6nSww5O/XY0VM=
-		Sharing URL: https://spatialanchorswebappcb.azurewebsites.net/index.html
+		* Standort: USA Ost 2
+		* Account-ID: 9925e31a-01af-478d-9be2-f5610d6ab3b1
+		* Key: 2NBDrkDMB6CL/0Vg4iPuPSi3R1zozO6nSww5O/XY0VM=
+		* Sharing URL: https://spatialanchorswebappcb.azurewebsites.net/index.html
 	3. Erstellen eines App-Service (Web App): SpatialAnchorsWebAppCB
-		Referenz zur Ressourcengruppe und zum App Service-Plan
+		* Referenz zur Ressourcengruppe und zum App Service-Plan
 
 ## Voraussetzung:
-	Unity Version 2019.1 oder höher
-	Git für Windows
-	Android Studio mit Android ADK und NDK, CMaker, ...
-	.NET Core 2.2 SDK
-	Windows Computer mit ASP.NET- und Webentwicklungs-Workload, mit Visual Studio 2017 oder höher
+	* Unity Version 2019.1 oder höher
+	* Git für Windows
+	* Android Studio mit Android ADK und NDK, CMaker, ...
+	* .NET Core 2.2 SDK
+	* Windows Computer mit ASP.NET- und Webentwicklungs-Workload, mit Visual Studio 2017 oder höher
 
 ## Herunterladen des Beispiels von Azure
-	Im Zielordner mit "Git BASH here" 
+	* Im Zielordner mit "Git BASH here" 
 	--> "git clone https://github.com/Azure/azure-spatial-anchors-samples.git"
 
 ## Veröffentlichen der SharingService Solution
-	Öffnen des SharingServiceProjekt in Visual Studio
-	Wichtig: Es muss die SharingService.sln geöffnet werden in Visual Studio
-	In der Projektmappe "SharingService" befindet sich das Objekt "SharingService"
-	Dies mit Doppelclick öffnen und > Erstellen > "SharingService" veröffentlichen clicken
-	Danach bei 'App Service' auf "Vorhandenes Element auswählen" und die zuvor erstelle WebApp auswählen
-	Danach sollte sich im Browser die Webapp öffnen mit eine index.html 
+	* Öffnen des SharingServiceProjekt in Visual Studio
+	** Wichtig **: Es muss die SharingService.sln geöffnet werden in Visual Studio
+	* In der Projektmappe "SharingService" befindet sich das Objekt "SharingService"
+	* Dies mit Doppelclick öffnen und > Erstellen > "SharingService" veröffentlichen clicken
+	* Danach bei 'App Service' auf "Vorhandenes Element auswählen" und die zuvor erstelle WebApp auswählen
+	* Danach sollte sich im Browser die Webapp öffnen mit eine index.html 
 
 * In Unity muss dann das Projekt geöffnet werden: Version Höher als Unity 2019.1.10f !!!
 

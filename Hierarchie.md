@@ -2,11 +2,11 @@
 ## Camera Parent
     - Script: XR Camera Picker
         Prefabs:
-        > HoloLensCamera
+        * HoloLensCamera
             - Spatial Mapping Collider: https://docs.unity3d.com/Manual/SpatialMappingCollider.html
             Erlaubt holographischem Inhalt mit realen psysikalischen Oberflächen zu interagieren
             --> Creating, updating und destroying von Oberflächen (GameObject Colliders)  
-        > ARFoundationSessionStack
+        * ARFoundationSessionStack
             - AR Session
             - AR Input Manager
             - AR Session Origin
@@ -22,7 +22,7 @@
                     --- AR Plane Mesh Visualizer
                     --- Line Renderer
             - AR Point Cloud Manager
-        > DefaultCamera
+        * DefaultCamera
 
 Das Prefab CameraParent (Camera Prefab) ist zur Erkennung der Oberflächen und für die AR Kamera vom Handy
 
