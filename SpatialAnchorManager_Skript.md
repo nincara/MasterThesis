@@ -1,5 +1,5 @@
-
-Das Skript "SpatialAnchorManager" besteht aus 9 Regionen.
+# SpatialAnchorsManager
+Das Skript *"SpatialAnchorManager"* besteht aus 9 Regionen.
 
 0. Zu Beginn wird eine enum-Liste erzeugt mit dem Modus der Authentifikation 
 (Das Schlüsselwort enum wird zum Deklarieren einer Enumeration verwendet. 
