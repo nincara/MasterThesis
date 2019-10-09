@@ -1,22 +1,56 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using System.Threading.Tasks;
+using UnityEngine.UI;
 
-namespace Microsoft.Azure.SpatialAnchors {
+namespace Microsoft.Azure.SpatialAnchors.Unity {
 
-    public class MySpatialApp : MonoBehaviour {
-        CloudSpatialAnchorSession cloudSession;
-        // Start is called before the first frame update
-        void Start () {
-            this.cloudSession = new CloudSpatialAnchorSession ();
-            Debug.Log (cloudSession);
-            this.cloudSession.Configuration.AccountKey = @"MyAccountKey";
-            this.cloudSession.Configuration.AccessToken = @"MyAccessToken";
+    public class MySpatialApp : MyAppBase 
+    {
+        internal enum AppState
+        {
+            InitSession = 0
+        }
+
+        private readonly Dictionary<AppState, DemoStepParams> stateParams = new Dictionary<AppState, DemoStepParams>
+        {
+            { AppState.InitSession,new DemoStepParams() { StepMessage = "Next: Create Azure Spatial Anchors Session", StepColor = Color.clear }},
+            
+        };
+
+        private readonly 
+        public override void Start () {
+
+           
         }
 
         // Update is called once per frame
         void Update () {
 
         }
+
+        #region Override Methods
+
+        protected override bool IsPlacingObject()
+        {
+            return currentAppState == AppState.DemoStepCreateLocalAnchor;
+        }
+
+        protected override Color GetStepColor()
+        {
+            return stateParams[currentAppState].StepColor;
+        }
+
+        public async override Task AdvanceDemoAsync()
+        {
+            switch (currentAppState)
+            {
+                default:
+                break;
+            }
+        }
+        #endregion Override Methods
+        
     }
 }
