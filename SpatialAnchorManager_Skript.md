@@ -34,10 +34,13 @@ und *"AAD"* (Azure Active Directory)
 
 4. Overridables
   * Diese Methoden sind alle virtual und können überschrieben werden. 
-    * **virtual async Task<string>**: GetAADTokenAsync()
+    * **virtual async Task<string>**: GetAADTokenAsync()  
     _Diese Methode ist auskommentiert, da sie nur bei der Verwendung von AAD Anwendung findet._
-    * **virtual void**: LoadConfiguration
+    * **virtual void**: LoadConfiguration  
+    _Diese Methode lädt die ID und den Key aus der Config Datei im Resources Ordner. Dabei setzt die Methode die Werte aus der Config in die Inspector Varialen aus 2._  
+    _Aufgerufen: Line 618!_
     * **async virtual Task<bool>**: IsValidateConfiguration()
+    _Dieses Skript überprüft, ob der Manager richtig konfiguriert wurde und bereit zum laufen ist. Wenn ja, gibt die Methode true zurück, andernfalls false._
     * **virtual void**: OnAnchorLocated(**object** sender, **AnchorsLocatedEventArgs** args)
     * **virtual void**: OnError(**object** sender, **SessionErrorEventArgs** args)
     * **virtual void**: OnLocateAnchorsCompleted(**object** sender, **LocateAnchorsCompletedEventArgs** args)
@@ -50,11 +53,60 @@ und *"AAD"* (Azure Active Directory)
     * **virtual void**: OnSessionUpdated(**object** sender, **SessionUpdatedEventArgs** args)
 
 5. Event Handlers
-  * bla
+  * 
     * **async void**: Session_TokenRequired(**object** sender, **TokenRequiredEventArgs** args)
     * **void**: ARReferencePointManager_referendePointsChanged (**ARReferencePointsChangedEventArgs** obj)
     * **void**: ArCameraManager_frameReceived(**ARCameraFrameEventArgs** obj)
-6. Unity Overrides 
+
+6. Unity Overrides
+  * Unity Methoden, welche vom Nutzer überschrieben werden können.
+    * **virtual void**: Awake()  
+    _Wird beim Laden des Skripts aufgerufen. Hier wird die Funktion LoadConfiguration() aufgerufen._
+    * **virtual void**: OnDestroy()  
+    _Ruft die Methode DestroySession() auf. Wird ausgeführt wenn die Szene oder die Anwendung beendet ist._
+    * **async virtual void**: Start()
+      * mainCamera = Camera.main
+      * arCameraManager = FindObjectOfType<ARCameraManager>()
+      * arSession = FindObjectOfType<ARSession>()
+      * arReferencePointManager = FindObjectOfType<ARReferencePointManager>()
+    _Die start-Methode wird vor der ersten Update-Methode ausgeführt. Sie überprüft mit **EnsureValidConfiguration()** ob der Manager richtig configuriert wurde. Dies wird mit einer await-Methode durchgeführt._
+    * **virtual void**: Update()
+    _In der Update wird die Methode **ProcessPendingEventArgs()** jeden Frame ausgeführt._
+    
 7. Public Methods
+  * Wichtige Methoden zur Erstellung von Session und Anker!
+    * **async Task**: CreateSessionAsync()
+    * **void**: DestroySession()
+    * **async Task**: ResetSessionAsync()
+
+    * **asynch Task**: CreateAnchorAsync(**CloudSpatialAnchor** anchor, **CancellationToken** canellationToken)
+    * **async Task**: CreateAnchorAsync(**CloudSpatialAnchor** anchor)
+    * **async Task**: DeleteAnchorAsync(**CloudSpatialAnchor** anchor)
+    * **async Task**: StartSessionAsync()
+    * **async Task**: StopSession()
+
 8. Public Properties
+  * Get und Set Methoden für Properties
+    * **AuthenticationMode** AuthenticationMode {get {} set{}}
+    * **string** ClientId {get {} set{}}
+    * **bool** IsLocating {get {}}
+    * **bool** IsReadyForCreate {get {}}
+    * **bool** IsSessionStarted {get{}}
+    * **SessionLogLevel** LogLevel {get {} set{}}
+    * **CloudSpatialAnchorSession** Session {get {} set{}}
+    * **SessionStatus** SessionStatus {get {}}
+    * **string** SpatialAnchorsAccountId {get {} set{}}
+    * **string** SpatialAnchorsAccountKey {get {} set{}}
+    * **string** TenantId {get {} set{}}
+
 9. Public Events
+  * Events?
+    * **event AnchorsLocatedDelegate** AnchorsLocated
+    * **event LocateAnchorsCompletedDelegate** LocateAnchorsCompleted
+    * **event SessionErrorDelegate** Error
+    * **event EventHandler** SessionChanged
+    * **event EventHandler** SessionCreated
+    * **event EventHandler** SessionDestroyed
+    * **event EventHandler** SessionStopped
+    * **event SessionUpdatedDelegate** SessionUpdated
+    * **event OnLogDebugDelegate** LogDebug
