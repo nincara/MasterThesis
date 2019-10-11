@@ -11,11 +11,17 @@ Diese beiden Skripte sind die Grundlage für die 3 von Azure bereitgestellten De
 * private void TriggerInteractions()
 
 * protected **virtual** void OnGazeInteraction()
+  * Wird aufgerufen, wenn eine Gaze-Interaktion auftritt
 * protected **virtual** void OnGazeObjectInteraction(Vector3 hitPoint, Vector3 hitNormal)
+  * Wird aufgerufen, wenn eine Gaze-Interaktion beginnt. Dabei werden zwei Vector3 Objekte übergeben. 
 * protected **virtual** void OnTouchInteraction(Touch touch)
+  * Wird aufgerufen, wenn eine Touch-Interaktion auftritt.
 * protected **virtual** void OnTouchInteractionEnded(Touch touch)
+  * Wird aufgerufen, wenn eine Touch-Interaktion endet.
 * protected **virtual** void OnSelectInteraction()
+  * Wird aufgerufen, wenn eine Auswahl-Interkation auftritt. Ausschließlich für HoloLens.
 * protected **virtual** void OnSelectObjectInteraction(Vector3 hitPoint, object target)
+  * Wird aufgerufen, wenn eine Touch-Interaktion mit einem Objekt auftritt. 
 
 * private bool TryGazeHitTest(out RaycastHit target)
 * private void InteractionManager_InteractionSourcePressed(UnityEngine.XR.WSA.Input.InteractionSourcePressedEventArgs obj)
