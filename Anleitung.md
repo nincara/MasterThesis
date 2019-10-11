@@ -88,3 +88,8 @@ Das ist auch für Unity-Versionen möglich:
 #if UNITY_5_0_1
 	debug.Log("Das wird nur ausgegeben bei Unity Version 5.0.1");
 #endif
+
+# MERKE
+
+* In der Thesis die Platformunabhöngigkeit beim Code aufführen. https://docs.unity3d.com/Manual/PlatformDependentCompilation.html
+

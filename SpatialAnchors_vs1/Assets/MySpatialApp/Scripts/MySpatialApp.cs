@@ -8,17 +8,6 @@ namespace Microsoft.Azure.SpatialAnchors.Unity {
 
     public class MySpatialApp : MyAppBase 
     {
-        internal enum AppState
-        {
-            InitSession = 0
-        }
-
-        private readonly Dictionary<AppState, DemoStepParams> stateParams = new Dictionary<AppState, DemoStepParams>
-        {
-            { AppState.InitSession,new DemoStepParams() { StepMessage = "Next: Create Azure Spatial Anchors Session", StepColor = Color.clear }},
-            
-        };
-
         public override void Start () {
 
            
