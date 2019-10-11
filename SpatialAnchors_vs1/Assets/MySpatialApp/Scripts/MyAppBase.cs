@@ -73,7 +73,7 @@ namespace Microsoft.Azure.SpatialAnchors.Unity
         /// </summary>
         public override void Start()
         {
-            feedbackBox = XRUXPicker.Instance.GetFeedbackText();
+            feedbackBox = GameObject.Find("Textfield").GetComponent<Text>();
             if (feedbackBox == null)
             {
                 Debug.Log($"{nameof(feedbackBox)} not found in scene by XRUXPicker.");
@@ -131,7 +131,7 @@ namespace Microsoft.Azure.SpatialAnchors.Unity
             }
             catch (Exception ex)
             {
-                Debug.LogError($"{nameof(DemoScriptBase)} - Error in {nameof(AdvanceDemo)}: {ex.Message} {ex.StackTrace}");
+                Debug.LogError($"{nameof(MyAppBase)} - Error in {nameof(AdvanceDemo)}: {ex.Message} {ex.StackTrace}");
                 feedbackBox.text = $"Demo failed, check debugger output for more information";
             }
         }
@@ -234,7 +234,7 @@ namespace Microsoft.Azure.SpatialAnchors.Unity
         /// Gets the color of the current demo step.
         /// </summary>
         /// <returns><see cref="Color"/>.</returns>
-        protected abstract Color GetStepColor();
+        //protected abstract Color GetStepColor();
 
         /// <summary>
         /// Determines whether the demo is in a mode that should place an object.
@@ -465,7 +465,7 @@ namespace Microsoft.Azure.SpatialAnchors.Unity
             newGameObject.AddComponent<CloudNativeAnchor>();
 
             // Set the color
-            newGameObject.GetComponent<MeshRenderer>().material.color = GetStepColor();
+            //newGameObject.GetComponent<MeshRenderer>().material.color = GetStepColor();
 
             // Return created object
             return newGameObject;
@@ -491,7 +491,7 @@ namespace Microsoft.Azure.SpatialAnchors.Unity
             }
 
             // Set color
-            newGameObject.GetComponent<MeshRenderer>().material.color = GetStepColor();
+            //newGameObject.GetComponent<MeshRenderer>().material.color = GetStepColor();
 
             // Return newly created object
             return newGameObject;
@@ -556,7 +556,7 @@ namespace Microsoft.Azure.SpatialAnchors.Unity
 
         protected struct DemoStepParams
         {
-            public Color StepColor { get; set; }
+            //public Color StepColor { get; set; }
             public string StepMessage { get; set; }
         }
 

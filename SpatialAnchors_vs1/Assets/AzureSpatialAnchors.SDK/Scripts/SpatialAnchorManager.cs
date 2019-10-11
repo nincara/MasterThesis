@@ -319,6 +319,7 @@ namespace Microsoft.Azure.SpatialAnchors.Unity
         {
 #if !UNITY_EDITOR && (UNITY_WSA || WINDOWS_UWP)
             // Ensure that the device is running a suported build with the spatialperception capability declared.
+            
             bool accessGranted = false;
             try
             {
@@ -355,12 +356,14 @@ namespace Microsoft.Azure.SpatialAnchors.Unity
 
 #if UNITY_ANDROID || UNITY_IOS
             // Check ARFoundation configuration
+
             if (arCameraManager == null || !arCameraManager.enabled)
             {
                 Debug.LogError("Need an enabled ARCameraManager in the scene");
                 return false;
             }
-
+            Debug.Log("arSession is " +arSession.enabled);
+            
             if (arSession == null || !arSession.enabled)
             {
                 Debug.LogError("Need an enabled ARSession in the scene");
@@ -636,6 +639,7 @@ namespace Microsoft.Azure.SpatialAnchors.Unity
             mainCamera = Camera.main;
             arCameraManager = FindObjectOfType<ARCameraManager>();
             arSession = FindObjectOfType<ARSession>();
+            Debug.Log("arSession: "+ arSession);
             arReferencePointManager = FindObjectOfType<ARReferencePointManager>();
 #endif    
 
