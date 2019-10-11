@@ -19,7 +19,6 @@ namespace Microsoft.Azure.SpatialAnchors.Unity {
             
         };
 
-        private readonly 
         public override void Start () {
 
            
