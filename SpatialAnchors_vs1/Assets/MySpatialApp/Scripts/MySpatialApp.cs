@@ -1,41 +1,33 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
-using UnityEngine;
 using System.Threading.Tasks;
+using UnityEngine;
 using UnityEngine.UI;
-using System;
 
-namespace Microsoft.Azure.SpatialAnchors.Unity
-{
+namespace Microsoft.Azure.SpatialAnchors.Unity {
 
-    public class MySpatialApp : MyAppBase
-    {
-        internal enum AppState
-        {
+    public class MySpatialApp : MyAppBase {
+        internal enum AppState {
             Default = 0,
             PlacingAnchor,
             LookingForAnchor
         }
 
-        private readonly Dictionary<AppState, DemoStepParams> stateParams = new Dictionary<AppState, DemoStepParams>
-        {
-            { AppState.Default,new DemoStepParams() { StepMessage = "Choose an Option."}},
-            { AppState.PlacingAnchor,new DemoStepParams() { StepMessage = "Place an Anchor."}},
-            { AppState.LookingForAnchor,new DemoStepParams() { StepMessage = "Looking for Anchors."}}
+        private readonly Dictionary<AppState, DemoStepParams> stateParams = new Dictionary<AppState, DemoStepParams> { { AppState.Default, new DemoStepParams () { StepMessage = "Choose an Option." } },
+            { AppState.PlacingAnchor, new DemoStepParams () { StepMessage = "Place an Anchor." } },
+            { AppState.LookingForAnchor, new DemoStepParams () { StepMessage = "Looking for Anchors." } }
         };
+
         private AppState _currentAppState = AppState.Default;
 
-        AppState currentAppState
-        {
-            get
-            {
+        AppState currentAppState {
+            get {
                 return _currentAppState;
             }
-            set
-            {
-                if (_currentAppState != value)
-                {
-                    Debug.LogFormat("State from {0} to {1}", _currentAppState, value);
+            set {
+                if (_currentAppState != value) {
+                    Debug.LogFormat ("State from {0} to {1}", _currentAppState, value);
                     _currentAppState = value;
 
                     /* if (spawnedObjectMat != null)
@@ -43,8 +35,7 @@ namespace Microsoft.Azure.SpatialAnchors.Unity
                         spawnedObjectMat.color = stateParams[_currentAppState].StepColor;
                     } */
 
-                    if (!isErrorActive)
-                    {
+                    if (!isErrorActive) {
                         feedbackBox.text = stateParams[_currentAppState].StepMessage;
                     }
                 }
@@ -53,43 +44,37 @@ namespace Microsoft.Azure.SpatialAnchors.Unity
 
         private string currentAnchorId = "";
 
-        public override void Start()
-        {
-            Debug.Log(">>Azure Spatial Anchors Demo Script Start");
+        public override void Start () {
+            Debug.Log (">>Azure Spatial Anchors Demo Script Start");
 
-            base.Start();
+            base.Start ();
 
-            if (!SanityCheckAccessConfiguration())
-            {
+            if (!SanityCheckAccessConfiguration ()) {
                 return;
             }
             feedbackBox.text = stateParams[currentAppState].StepMessage;
 
-            Debug.Log("Azure Spatial Anchors Demo script started");
+            Debug.Log ("Azure Spatial Anchors Demo script started");
         }
 
         // Update is called once per frame
-        void Update()
-        {
-            base.Update();
+        public override void Update () {
+            base.Update ();
 
-            if (spawnedObjectMat != null)
-            {
+            if (spawnedObjectMat != null) {
                 float rat = 0.1f;
                 float createProgress = 0f;
-                if (CloudManager.SessionStatus != null)
-                {
+                if (CloudManager.SessionStatus != null) {
                     createProgress = CloudManager.SessionStatus.RecommendedForCreateProgress;
                 }
-                rat += (Mathf.Min(createProgress, 1) * 0.9f);
+                rat += (Mathf.Min (createProgress, 1) * 0.9f);
                 //spawnedObjectMat.color = GetStepColor() * rat;
             }
         }
 
         #region Override Methods
 
-        protected override bool IsPlacingObject()
-        {
+        protected override bool IsPlacingObject () {
             return currentAppState == AppState.PlacingAnchor;
         }
 
@@ -98,67 +83,136 @@ namespace Microsoft.Azure.SpatialAnchors.Unity
             return stateParams[currentAppState].StepColor;
         } */
 
-        protected override async Task OnSaveCloudAnchorSuccessfulAsync()
-        {
-            await base.OnSaveCloudAnchorSuccessfulAsync();
+        protected override async Task OnSaveCloudAnchorSuccessfulAsync () {
+            await base.OnSaveCloudAnchorSuccessfulAsync ();
 
-            Debug.Log("Anchor created, yay!");
+            Debug.Log ("Anchor created, yay!");
 
             currentAnchorId = currentCloudAnchor.Identifier;
+            feedbackBox.text += "Id: " + currentAnchorId+ ". ";
 
             // Sanity check that the object is still where we expect
             Pose anchorPose = Pose.identity;
 
-            #if UNITY_ANDROID || UNITY_IOS
-            anchorPose = currentCloudAnchor.GetPose();
-            #endif
+#if UNITY_ANDROID || UNITY_IOS
+            anchorPose = currentCloudAnchor.GetPose ();
+#endif
             // HoloLens: The position will be set based on the unityARUserAnchor that was located.
 
-            SpawnOrMoveCurrentAnchoredObject(anchorPose.position, anchorPose.rotation);
+            SpawnOrMoveCurrentAnchoredObject (anchorPose.position, anchorPose.rotation);
 
             currentAppState = AppState.Default;
         }
 
-        protected override void OnSaveCloudAnchorFailed(Exception exception)
-        {
-            base.OnSaveCloudAnchorFailed(exception);
+        protected override void OnSaveCloudAnchorFailed (Exception exception) {
+            base.OnSaveCloudAnchorFailed (exception);
 
             currentAnchorId = string.Empty;
         }
-        public async void PlacingObjects()
-        {
-            
+        public async void PlacingObjects () {
+
             currentAppState = AppState.PlacingAnchor;
-            feedbackBox.text = "Trying to place an Object now.";
-            if (CloudManager.Session == null)
-            {
-                await CloudManager.CreateSessionAsync();
-                feedbackBox.text += "Session created.";
+            feedbackBox.text = "Trying to place an Object now. ";
+            if (CloudManager.Session == null) {
+                await CloudManager.CreateSessionAsync ();
+                feedbackBox.text += "Session created. ";
             }
             currentAnchorId = "";
             currentCloudAnchor = null;
-            ConfigureSession();
+            ConfigureSession ();
 
-            await CloudManager.StartSessionAsync();
-            feedbackBox.text += "Session started.";
+            await CloudManager.StartSessionAsync ();
+            feedbackBox.text += "Session started. ";
 
-            if (spawnedObject != null)
-            {
-                await SaveCurrentObjectAnchorToCloudAsync();
+            if (spawnedObject != null) {
+                await SaveCurrentObjectAnchorToCloudAsync ();
             }
 
-            CloudManager.StopSession();
-            feedbackBox.text += "Session beendet.";
+            CloudManager.StopSession ();
+            CleanupSpawnedObjects();
+            feedbackBox.text += "Session beendet. ";
         }
 
-        public void StartingApp()
-        {
+        public async void LookingForObject () {
+            currentAppState = AppState.LookingForAnchor;
+            feedbackBox.text = "Trying to look for an Object now. ";
+            if (CloudManager.Session == null) {
+                await CloudManager.CreateSessionAsync ();
+                feedbackBox.text += "Session created. ";
+            }
+
+            currentAnchorId = "";
+            currentCloudAnchor = null;
+            ConfigureSession ();
+
+            await CloudManager.StartSessionAsync ();
+            feedbackBox.text += "Session started. ";
+
+            // Watching Part
+
+            SetCriteria("");
+            feedbackBox.text += "Kriterien erstellt: " + anchorLocateCriteria + ". Session: " +CloudManager.Session + ". ";
+            CreateWatcher();
+            feedbackBox.text += "Watcher erstellt. ";
+
+            CloudManager.Session.AnchorLocated += (object sender, AnchorLocatedEventArgs args) => {
+                switch (args.Status) {
+                    case LocateAnchorStatus.Located:
+                        CloudSpatialAnchor foundAnchor = args.Anchor;
+                        feedbackBox.text += "Anker gefunden! ";
+                        break;
+                    case LocateAnchorStatus.AlreadyTracked:
+                        // This anchor has already been reported and is being tracked
+                        break;
+                    case LocateAnchorStatus.NotLocatedAnchorDoesNotExist:
+                        // The anchor was deleted or never existed in the first place
+                        // Drop it, or show UI to ask user to anchor the content anew
+                        break;
+                    case LocateAnchorStatus.NotLocated:
+                        // The anchor hasn't been found given the location data
+                        // The user might in the wrong location, or maybe more data will help
+                        // Show UI to tell user to keep looking around
+                        feedbackBox.text += "Anker nicht gefunden! ";
+                        break;
+                }
+            };
 
         }
-        public async override Task AdvanceDemoAsync()
-        {
-            switch (currentAppState)
-            {
+
+        /*protected override void OnCloudAnchorLocated (AnchorLocatedEventArgs args) {
+            base.OnCloudAnchorLocated (args);
+
+            if (args.Status == LocateAnchorStatus.Located) {
+                CloudSpatialAnchor nextCsa = args.Anchor;
+                currentCloudAnchor = args.Anchor;
+
+                UnityDispatcher.InvokeOnAppThread (() => {
+                    anchorsLocated++;
+                    currentCloudAnchor = nextCsa;
+                    Pose anchorPose = Pose.identity;
+
+#if UNITY_ANDROID || UNITY_IOS
+                    anchorPose = currentCloudAnchor.GetPose ();
+#endif
+                    // HoloLens: The position will be set based on the unityARUserAnchor that was located.
+
+                    GameObject nextObject = SpawnNewAnchoredObject (anchorPose.position, anchorPose.rotation, currentCloudAnchor);
+                    spawnedObjectMat = nextObject.GetComponent<MeshRenderer> ().material;
+                    AttachTextMesh (nextObject, _anchorNumberToFind);
+                    otherSpawnedObjects.Add (nextObject);
+
+                    if (anchorsLocated >= anchorsExpected) {
+                        currentAppState = AppState.DemoStepStopSessionForQuery;
+                    }
+                });
+            }
+        }*/
+
+        public void StartingApp () {
+
+        }
+        public async override Task AdvanceDemoAsync () {
+            switch (currentAppState) {
 
                 case AppState.PlacingAnchor:
 
@@ -172,15 +226,13 @@ namespace Microsoft.Azure.SpatialAnchors.Unity
         }
         #endregion Override Methods
 
-        private void ConfigureSession()
-        {
-            List<string> anchorsToFind = new List<string>();
-            if (currentAppState == AppState.PlacingAnchor)
-            {
-                anchorsToFind.Add(currentAnchorId);
+        private void ConfigureSession () {
+            List<string> anchorsToFind = new List<string> ();
+            if (currentAppState == AppState.PlacingAnchor) {
+                anchorsToFind.Add (currentAnchorId);
             }
 
-            SetAnchorIdsToLocate(anchorsToFind);
+            SetAnchorIdsToLocate (anchorsToFind);
         }
 
     }

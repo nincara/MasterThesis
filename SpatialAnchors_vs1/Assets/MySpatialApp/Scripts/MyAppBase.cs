@@ -179,6 +179,11 @@ namespace Microsoft.Azure.SpatialAnchors.Unity
             }
         }
 
+        public void SetCriteria(String identifier) 
+        {
+            anchorLocateCriteria.Identifiers = new string[] {identifier};
+        }
+
         protected void SetAnchorIdsToLocate(IEnumerable<string> anchorIds)
         {
             if (anchorIds == null)
@@ -406,6 +411,7 @@ namespace Microsoft.Azure.SpatialAnchors.Unity
 
             // Get the cloud portion of the anchor
             CloudSpatialAnchor cloudAnchor = cna.CloudAnchor;
+            //cloudAnchor.AppProperties[@"label"] = @"myApp";
 
             // In this sample app we delete the cloud anchor explicitly, but here we show how to set an anchor to expire automatically
             cloudAnchor.Expiration = DateTimeOffset.Now.AddDays(7);
