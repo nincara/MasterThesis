@@ -10,16 +10,22 @@ namespace Microsoft.Azure.SpatialAnchors.Unity {
     public class MySpatialApp : MyAppBase {
         internal enum AppState {
             Default = 0,
+            StartingSession,
             PlacingAnchor,
+            StoppingSession,
             LookingForAnchor
         }
 
-        private readonly Dictionary<AppState, DemoStepParams> stateParams = new Dictionary<AppState, DemoStepParams> { { AppState.Default, new DemoStepParams () { StepMessage = "Choose an Option." } },
-            { AppState.PlacingAnchor, new DemoStepParams () { StepMessage = "Place an Anchor." } },
-            { AppState.LookingForAnchor, new DemoStepParams () { StepMessage = "Looking for Anchors." } }
+        private readonly Dictionary<AppState, DemoStepParams> stateParams = new Dictionary<AppState, DemoStepParams> { 
+            { AppState.Default, new DemoStepParams () { StepMessage = "Choose an Option.", StepColor = Color.red  } },
+            { AppState.StartingSession, new DemoStepParams () { StepMessage = "Starting a Session", StepColor = Color.black} },
+            { AppState.PlacingAnchor, new DemoStepParams () { StepMessage = "Place an Anchor.", StepColor = Color.black } },
+            { AppState.StoppingSession, new DemoStepParams () { StepMessage = "Stopping the Session.", StepColor = Color.black} },
+            { AppState.LookingForAnchor, new DemoStepParams () { StepMessage = "Looking for Anchors.", StepColor = Color.green  } }
         };
 
         private AppState _currentAppState = AppState.Default;
+        private Button placingButton, finishButton, lookingButton, deletingButton;
 
         AppState currentAppState {
             get {
@@ -30,10 +36,10 @@ namespace Microsoft.Azure.SpatialAnchors.Unity {
                     Debug.LogFormat ("State from {0} to {1}", _currentAppState, value);
                     _currentAppState = value;
 
-                    /* if (spawnedObjectMat != null)
+                    if (spawnedObjectMat != null)
                     {
                         spawnedObjectMat.color = stateParams[_currentAppState].StepColor;
-                    } */
+                    } 
 
                     if (!isErrorActive) {
                         feedbackBox.text = stateParams[_currentAppState].StepMessage;
@@ -54,6 +60,11 @@ namespace Microsoft.Azure.SpatialAnchors.Unity {
             }
             feedbackBox.text = stateParams[currentAppState].StepMessage;
 
+            placingButton = GameObject.Find("Placing").GetComponent<Button>();
+            finishButton = GameObject.Find("Finished").GetComponent<Button>();
+            lookingButton = GameObject.Find("Looking").GetComponent<Button>();
+            deletingButton = GameObject.Find("Deleting").GetComponent<Button>();
+
             Debug.Log ("Azure Spatial Anchors Demo script started");
         }
 
@@ -68,7 +79,7 @@ namespace Microsoft.Azure.SpatialAnchors.Unity {
                     createProgress = CloudManager.SessionStatus.RecommendedForCreateProgress;
                 }
                 rat += (Mathf.Min (createProgress, 1) * 0.9f);
-                //spawnedObjectMat.color = GetStepColor() * rat;
+                spawnedObjectMat.color = GetStepColor() * rat;
             }
         }
 
@@ -78,10 +89,10 @@ namespace Microsoft.Azure.SpatialAnchors.Unity {
             return currentAppState == AppState.PlacingAnchor;
         }
 
-        /* protected override Color GetStepColor()
+        protected override Color GetStepColor()
         {
             return stateParams[currentAppState].StepColor;
-        } */
+        }
 
         protected override async Task OnSaveCloudAnchorSuccessfulAsync () {
             await base.OnSaveCloudAnchorSuccessfulAsync ();
@@ -109,9 +120,13 @@ namespace Microsoft.Azure.SpatialAnchors.Unity {
 
             currentAnchorId = string.Empty;
         }
-        public async void PlacingObjects () {
 
-            currentAppState = AppState.PlacingAnchor;
+        public async void StartingSession() {
+            
+            placingButton.gameObject.SetActive(false);
+            finishButton.gameObject.SetActive(true);
+
+            currentAppState = AppState.StartingSession;
             feedbackBox.text = "Trying to place an Object now. ";
             if (CloudManager.Session == null) {
                 await CloudManager.CreateSessionAsync ();
@@ -121,8 +136,16 @@ namespace Microsoft.Azure.SpatialAnchors.Unity {
             currentCloudAnchor = null;
             ConfigureSession ();
 
+            currentAppState = AppState.PlacingAnchor;
+
             await CloudManager.StartSessionAsync ();
             feedbackBox.text += "Session started. ";
+
+            currentAppState = AppState.PlacingAnchor;
+        }
+        public async void PlacingObjects () {
+            currentAppState = AppState.StoppingSession;
+            finishButton.gameObject.SetActive(false);
 
             if (spawnedObject != null) {
                 await SaveCurrentObjectAnchorToCloudAsync ();
@@ -131,6 +154,9 @@ namespace Microsoft.Azure.SpatialAnchors.Unity {
             CloudManager.StopSession ();
             CleanupSpawnedObjects();
             feedbackBox.text += "Session beendet. ";
+            placingButton.gameObject.SetActive(true);
+            
+            currentAppState = AppState.Default;
         }
 
         public async void LookingForObject () {
@@ -150,12 +176,12 @@ namespace Microsoft.Azure.SpatialAnchors.Unity {
 
             // Watching Part
 
-            SetCriteria("");
+            SetEmptyCriteria();
             feedbackBox.text += "Kriterien erstellt: " + anchorLocateCriteria + ". Session: " +CloudManager.Session + ". ";
-            CreateWatcher();
+            CloudSpatialAnchorWatcher _lokalWatcher = CreateWatcher();
             feedbackBox.text += "Watcher erstellt. ";
 
-            CloudManager.Session.AnchorLocated += (object sender, AnchorLocatedEventArgs args) => {
+            /*CloudManager.Session.AnchorLocated += (object sender, AnchorLocatedEventArgs args) => {
                 switch (args.Status) {
                     case LocateAnchorStatus.Located:
                         CloudSpatialAnchor foundAnchor = args.Anchor;
@@ -175,7 +201,7 @@ namespace Microsoft.Azure.SpatialAnchors.Unity {
                         feedbackBox.text += "Anker nicht gefunden! ";
                         break;
                 }
-            };
+            };*/
 
         }
 

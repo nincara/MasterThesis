@@ -169,8 +169,10 @@ namespace Microsoft.Azure.SpatialAnchors.Unity
 
         protected CloudSpatialAnchorWatcher CreateWatcher()
         {
+            //feedbackBox.text += "CreateWatcher() aufgerufen. " + "Cloud Manager: " +CloudManager+ ". Session: " +CloudManager.Session+ ". ";
             if ((CloudManager != null) && (CloudManager.Session != null))
             {
+                //feedbackBox.text += "CreateWatcher() ausgeführt.";
                 return CloudManager.Session.CreateWatcher(anchorLocateCriteria);
             }
             else
@@ -179,9 +181,10 @@ namespace Microsoft.Azure.SpatialAnchors.Unity
             }
         }
 
-        public void SetCriteria(String identifier) 
+        public void SetEmptyCriteria() 
         {
-            anchorLocateCriteria.Identifiers = new string[] {identifier};
+            feedbackBox.text += "Anchor Kriterien: " + anchorLocateCriteria.Identifiers+ ". "; 
+            anchorLocateCriteria.Identifiers = null;
         }
 
         protected void SetAnchorIdsToLocate(IEnumerable<string> anchorIds)
@@ -239,7 +242,7 @@ namespace Microsoft.Azure.SpatialAnchors.Unity
         /// Gets the color of the current demo step.
         /// </summary>
         /// <returns><see cref="Color"/>.</returns>
-        //protected abstract Color GetStepColor();
+        protected abstract Color GetStepColor();
 
         /// <summary>
         /// Determines whether the demo is in a mode that should place an object.
@@ -443,6 +446,7 @@ namespace Microsoft.Azure.SpatialAnchors.Unity
                     // Await override, which may perform additional tasks
                     // such as storing the key in the AnchorExchanger
                     await OnSaveCloudAnchorSuccessfulAsync();
+                    feedbackBox.text = "Saving successful!";
                 }
                 else
                 {
@@ -471,7 +475,7 @@ namespace Microsoft.Azure.SpatialAnchors.Unity
             newGameObject.AddComponent<CloudNativeAnchor>();
 
             // Set the color
-            //newGameObject.GetComponent<MeshRenderer>().material.color = GetStepColor();
+            newGameObject.GetComponent<MeshRenderer>().material.color = GetStepColor();
 
             // Return created object
             return newGameObject;
@@ -497,7 +501,7 @@ namespace Microsoft.Azure.SpatialAnchors.Unity
             }
 
             // Set color
-            //newGameObject.GetComponent<MeshRenderer>().material.color = GetStepColor();
+            newGameObject.GetComponent<MeshRenderer>().material.color = GetStepColor();
 
             // Return newly created object
             return newGameObject;
@@ -562,7 +566,7 @@ namespace Microsoft.Azure.SpatialAnchors.Unity
 
         protected struct DemoStepParams
         {
-            //public Color StepColor { get; set; }
+            public Color StepColor { get; set; }
             public string StepMessage { get; set; }
         }
 

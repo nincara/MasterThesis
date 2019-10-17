@@ -90,6 +90,7 @@ Diese beiden Skripte sind die Grundlage für die 3 von Azure bereitgestellten De
 * protected **_override_** void OnSelectInteraction()
   * Die Basismethode wird ausgeführt und um eine Funktion für WINDOWS_UWP || UNITY_WSA erweitert.  
 * protected **_override_** void OnSelectObjectInteraction(Vector3 hitPoint, object target)
+  * Wird ausgeführt, sobald eine Touch-Interaktion stattfindet! 
   * Gibt die Methode IsPlacingObject() true zurück, wird ein neues Anchor gespawned, oder ein bestehender verschobnen (Anpassung)
 * protected **_override_** void OnTouchInteraction(Touch touch)
   * Auch hier wird die Basis-Funktion der vererbten Klasse ausgeführt, sofern die Methode IsPlacingObject() true zurück gibt. 
