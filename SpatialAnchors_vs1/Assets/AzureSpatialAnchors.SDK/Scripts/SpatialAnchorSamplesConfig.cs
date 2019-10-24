@@ -2,7 +2,7 @@
 // Licensed under the MIT license.
 using UnityEngine;
 
-namespace Microsoft.Azure.SpatialAnchors.Unity.Examples
+namespace Microsoft.Azure.SpatialAnchors.Unity
 {
     /// <summary>
     /// This menu item generates an optional configuration file which can be

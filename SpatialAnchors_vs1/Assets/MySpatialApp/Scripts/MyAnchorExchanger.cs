@@ -14,6 +14,14 @@ namespace Microsoft.Azure.SpatialAnchors.Unity
         private string baseAddress = "";
 
         private List<string> anchorkeys = new List<string>();
+        private string[] anchorArray = new string[20];
+        public string[] AnchorArray
+        {
+            get
+            {
+                return anchorArray;
+            }
+        }
 
         public List<string> AnchorKeys
         {
@@ -89,6 +97,7 @@ namespace Microsoft.Azure.SpatialAnchors.Unity
             try
             {
                 HttpClient client = new HttpClient();
+                //client.setAnchorName()
                 var response = await client.PostAsync(baseAddress, new StringContent(anchorKey));
                 if (response.IsSuccessStatusCode)
                 {

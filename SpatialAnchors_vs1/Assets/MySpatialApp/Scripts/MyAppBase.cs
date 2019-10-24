@@ -15,7 +15,7 @@ namespace Microsoft.Azure.SpatialAnchors.Unity
         private Task advanceDemoTask = null;
         protected bool isErrorActive = false;
         protected Text feedbackBox, feedbackBoxExtra, idInput;
-        protected InputField idInputField;
+        //protected InputField idInputField;
         protected readonly List<string> anchorIdsToLocate = new List<string>();
         protected AnchorLocateCriteria anchorLocateCriteria = null;
         protected CloudSpatialAnchor currentCloudAnchor;
@@ -76,8 +76,8 @@ namespace Microsoft.Azure.SpatialAnchors.Unity
         {
             feedbackBox = GameObject.Find("Textfield").GetComponent<Text>();
             feedbackBoxExtra = GameObject.Find("Textfield_Extra").GetComponent<Text>();
-            idInputField = GameObject.Find("IdInput").GetComponent<InputField>();
-            idInputField.interactable = false;
+            //idInputField = GameObject.Find("IdInput").GetComponent<InputField>();
+            //idInputField.interactable = false;
 
             if (feedbackBox == null)
             {
@@ -186,13 +186,14 @@ namespace Microsoft.Azure.SpatialAnchors.Unity
             }
         }
 
-        public void SetIdCriteria(string criteria) 
+        public void SetIdCriteria(string[] criteria) 
         {
             //feedbackBox.text += "Anchor Kriterien: " + anchorLocateCriteria.Identifiers+ ". "; 
             //anchorLocateCriteria.Identifiers = new string[] {"9647d3f9-41f8-4601-a4ca-a275bf520812"};
             //string criteriaTwo = "9647d3f9-41f8-4601-a4ca-a275bf520812";
             ResetAnchorIdsToLocate();              
-            anchorLocateCriteria.Identifiers = new string[] {criteria};
+            //anchorLocateCriteria.Identifiers = new string[] {criteria.ToString()};
+            anchorLocateCriteria.Identifiers = criteria;
         }
 
         protected void SetAnchorIdsToLocate(IEnumerable<string> anchorIds)
@@ -441,12 +442,14 @@ namespace Microsoft.Azure.SpatialAnchors.Unity
             try
             {
                 // Actually save
+                cloudAnchor.AppProperties[@"name"] = @"Default Name";
                 await CloudManager.CreateAnchorAsync(cloudAnchor);
+                feedbackBox.text += "Der Name des Anchors ist " + cloudAnchor.AppProperties[@"name"] + ".";
 
                 // Store
                 currentCloudAnchor = cloudAnchor;
                 feedbackBox.text += "Anchor Id: " + currentCloudAnchor.Identifier + ". Copy it to clipboard to find the Anchor.";
-                idInputField.text = currentCloudAnchor.Identifier;
+                //idInputField.text = currentCloudAnchor.Identifier;
 
                 // Success?
                 success = currentCloudAnchor != null;
