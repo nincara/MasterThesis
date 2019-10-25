@@ -33,10 +33,12 @@ namespace Microsoft.Azure.SpatialAnchors.Unity
 #if !UNITY_EDITOR
         public MyAnchorExchanger anchorExchanger = new MyAnchorExchanger();
 #endif
-        private string[] anchorArray = new string[20];
+        private List<string> anchorList = new List<string>();
 
         private Button placingButton, finishButton, lookingButton, deletingButton;
         private string baseSharingUrl = "";
+        //private List<GameObject> allSpawnedObjects = new List<GameObject>();
+        //private int anchorsLocated = 0;
 
 
         AppState currentAppState
@@ -303,7 +305,7 @@ namespace Microsoft.Azure.SpatialAnchors.Unity
 
             // Watching Part
 
-            SetIdCriteria(anchorArray);
+            SetIdCriteria(anchorList.ToArray());
             feedbackBox.text += "Kriterien erstellt: " + anchorLocateCriteria.Identifiers + ". Session: " + CloudManager.Session + ". ";
             currentWatcher = CreateWatcher();
             feedbackBox.text += "Watcher erstellt. ";
@@ -316,12 +318,11 @@ namespace Microsoft.Azure.SpatialAnchors.Unity
 #if !UNITY_EDITOR
             while (!string.IsNullOrWhiteSpace(await anchorExchanger.RetrieveAnchorKey(_anchorNumber)))
             {
-                anchorArray[_anchorNumber] = await anchorExchanger.RetrieveAnchorKey(_anchorNumber);
+                anchorList.Add(await anchorExchanger.RetrieveAnchorKey(_anchorNumber));
                 _anchorNumber++;
             }
 
-            feedbackBoxExtra.text += "Alle Keys gespeichert! Key 0: " + anchorArray[0];
-
+            feedbackBoxExtra.text += "Alle Keys gespeichert! Anzahl: + "+anchorList.Count + ". ";
 #endif
         }
 
@@ -352,25 +353,15 @@ namespace Microsoft.Azure.SpatialAnchors.Unity
 #endif
                     // HoloLens: The position will be set based on the unityARUserAnchor that was located.
                     SpawnOrMoveCurrentAnchoredObject(anchorPose.position, anchorPose.rotation);
+
                 });
             }
         }
 
-        public async override Task AdvanceDemoAsync()
-        {
-            switch (currentAppState)
-            {
+        public async override Task AdvanceDemoAsync() {
 
-                case AppState.PlacingAnchor:
-
-                    break;
-                case AppState.LookingForAnchor:
-
-                    break;
-                default:
-                    break;
-            }
         }
+
         #endregion Override Methods
 
         private void ConfigureSession()

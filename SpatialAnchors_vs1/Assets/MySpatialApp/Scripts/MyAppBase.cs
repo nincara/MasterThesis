@@ -192,7 +192,7 @@ namespace Microsoft.Azure.SpatialAnchors.Unity
             //anchorLocateCriteria.Identifiers = new string[] {"9647d3f9-41f8-4601-a4ca-a275bf520812"};
             //string criteriaTwo = "9647d3f9-41f8-4601-a4ca-a275bf520812";
             ResetAnchorIdsToLocate();              
-            //anchorLocateCriteria.Identifiers = new string[] {criteria.ToString()};
+            //anchorLocateCriteria.Identifiers = new string[]{};
             anchorLocateCriteria.Identifiers = criteria;
         }
 

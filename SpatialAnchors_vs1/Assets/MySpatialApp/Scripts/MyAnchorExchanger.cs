@@ -14,14 +14,17 @@ namespace Microsoft.Azure.SpatialAnchors.Unity
         private string baseAddress = "";
 
         private List<string> anchorkeys = new List<string>();
-        private string[] anchorArray = new string[20];
-        public string[] AnchorArray
+        //private string[] anchorArray = new string[20];
+        /*public string[] AnchorArray
         {
             get
             {
-                return anchorArray;
+                lock (anchorArray)
+                {
+                    return new string[](anchorArray);
+                }
             }
-        }
+        }*/
 
         public List<string> AnchorKeys
         {
