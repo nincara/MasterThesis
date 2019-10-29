@@ -8,7 +8,7 @@ using UnityEngine.UI;
 namespace Microsoft.Azure.SpatialAnchors.Unity
 {
 
-    public class MySpatialApp : MyAppBase
+    public class AdvancedSpatialApp : MyAppBase
     {
         internal enum AppState
         {
@@ -34,10 +34,9 @@ namespace Microsoft.Azure.SpatialAnchors.Unity
 #endif
         private List<string> anchorList = new List<string>();
 
-        private Button placingButton, finishButton, lookingButton, deletingButton;
         private string baseSharingUrl = "";
-        //private List<GameObject> allSpawnedObjects = new List<GameObject>();
-        //private int anchorsLocated = 0;
+        private int anchorsLocated;
+        private Button placingButton, findingButton, finishButton, showButton, doneButton;
 
         AppState currentAppState
         {
@@ -77,15 +76,16 @@ namespace Microsoft.Azure.SpatialAnchors.Unity
             {
                 return;
             }
-            feedbackBox.text = stateParams[currentAppState].StepMessage;
 
-            placingButton = GameObject.Find("Placing").GetComponent<Button>();
-            finishButton = GameObject.Find("Finished").GetComponent<Button>();
-            lookingButton = GameObject.Find("Looking").GetComponent<Button>();
-            deletingButton = GameObject.Find("Deleting").GetComponent<Button>();
+            placingButton = GameObject.Find("PlacingObject").GetComponent<Button>();
+            findingButton = GameObject.Find("FindingObject").GetComponent<Button>();
+            finishButton = GameObject.Find("FinishedPlacing").GetComponent<Button>();
+            showButton = GameObject.Find("ShowAllAnchors").GetComponent<Button>();
+            doneButton = GameObject.Find("DoneFinding").GetComponent<Button>();
 
-            deletingButton.gameObject.SetActive(false);
-            finishButton.gameObject.SetActive(false);
+            finishButton.gameObject.SetActive(false); ///// BUTTON
+            showButton.gameObject.SetActive(false); ///// BUTTON
+            doneButton.gameObject.SetActive(false); ///// BUTTON
 
             SpatialAnchorSamplesConfig samplesConfig = Resources.Load<SpatialAnchorSamplesConfig>("SpatialAnchorSamplesConfig");
             feedbackBox.text += "Samples Config: " + samplesConfig + " . ";
@@ -141,6 +141,11 @@ namespace Microsoft.Azure.SpatialAnchors.Unity
             }
         }
 
+        public void toggleFeedbackText(){
+            feedbackBox.enabled = !feedbackBox.enabled;
+            feedbackBoxExtra.enabled = !feedbackBoxExtra.enabled;
+        }
+
         #region Override Methods
 
         protected override bool IsPlacingObject()
@@ -160,11 +165,9 @@ namespace Microsoft.Azure.SpatialAnchors.Unity
             Debug.Log("Anchor created, yay!");
 
             currentAnchorId = currentCloudAnchor.Identifier;
-            feedbackBoxExtra.text += "Id: " + currentAnchorId + ". ";
 
 #if !UNITY_EDITOR
             var anchorNumber = (await anchorExchanger.StoreAnchorKey(currentCloudAnchor.Identifier));
-            feedbackBoxExtra.text += "Anchor has the number: " + anchorNumber + ". ";
 #endif
 
             // Sanity check that the object is still where we expect
@@ -190,12 +193,12 @@ namespace Microsoft.Azure.SpatialAnchors.Unity
 
         public async void StartingSession()
         {
-
-            placingButton.gameObject.SetActive(false);
-            lookingButton.gameObject.SetActive(false);
-
             currentAppState = AppState.StartingSession;
-            feedbackBox.text = "Trying to place an Object now. ";
+            speechBubbleText.text = "Trying to place an Object now. ";
+
+            finishButton.gameObject.SetActive(true); ////// BUTTON 
+            placingButton.interactable = false; ////// BUTTON 
+
             if (CloudManager.Session == null)
             {
                 await CloudManager.CreateSessionAsync();
@@ -203,21 +206,19 @@ namespace Microsoft.Azure.SpatialAnchors.Unity
             }
             currentAnchorId = "";
             currentCloudAnchor = null;
-            //ConfigureSession ();
 
             currentAppState = AppState.PlacingAnchor;
 
             await CloudManager.StartSessionAsync();
             feedbackBox.text += "Session started. ";
 
-            finishButton.gameObject.SetActive(true);
             currentAppState = AppState.PlacingAnchor;
         }
 
         public async void PlacingObjects()
         {
             currentAppState = AppState.StoppingSession;
-            finishButton.gameObject.SetActive(false);
+            finishButton.gameObject.SetActive(false); ////// BUTTON 
 
             if (spawnedObject != null)
             {
@@ -227,12 +228,11 @@ namespace Microsoft.Azure.SpatialAnchors.Unity
 
             CloudManager.StopSession();
             CleanupSpawnedObjects();
+
             feedbackBox.text += "Session beendet. ";
 
             await CloudManager.ResetSessionAsync(); // Attention! 
-
-            placingButton.gameObject.SetActive(true);
-            lookingButton.gameObject.SetActive(true);
+            placingButton.interactable = true; ////// BUTTON 
 
             currentAppState = AppState.Default;
         }
@@ -255,16 +255,14 @@ namespace Microsoft.Azure.SpatialAnchors.Unity
             CleanupSpawnedObjects();
             feedbackBox.text += "Session beendet. ";
 
-            placingButton.gameObject.SetActive(true);
-            deletingButton.gameObject.SetActive(false);
-            lookingButton.gameObject.SetActive(true);
-
             currentAppState = AppState.Default;
 
         }
 
         public async void StoppingSession()
         {
+            doneButton.gameObject.SetActive(false);
+            
             CloudManager.StopSession();
             currentWatcher = null;
             currentCloudAnchor = null;
@@ -273,23 +271,18 @@ namespace Microsoft.Azure.SpatialAnchors.Unity
             feedbackBox.text += "Session beendet. ";
 
             await CloudManager.ResetSessionAsync(); // Attention! 
-
-            placingButton.gameObject.SetActive(true);
-            deletingButton.gameObject.SetActive(false);
-            lookingButton.gameObject.SetActive(true);
+            findingButton.interactable = true;
 
             currentAppState = AppState.Default;
-
         }
 
         public async void LookingForObject()
         {
-
-            placingButton.gameObject.SetActive(false);
-            lookingButton.gameObject.SetActive(false);
-
             currentAppState = AppState.LookingForAnchor;
-            feedbackBox.text = "Trying to look for an Object now. ";
+            speechBubbleText.text = "Trying to look for an Object now. ";
+
+            findingButton.interactable = false; ////// BUTTON 
+            showButton.gameObject.SetActive(true); ////// BUTTON 
 
             if (CloudManager.Session == null)
             {
@@ -349,38 +342,6 @@ namespace Microsoft.Azure.SpatialAnchors.Unity
 
         private List<GameObject> _spawnedObjects = new List<GameObject>();
         readonly Dictionary<string, GameObject> spawnedObjectsWithIds = new Dictionary<string, GameObject>();
-
-        /*protected override void OnCloudAnchorLocated(AnchorLocatedEventArgs args)
-        {
-            base.OnCloudAnchorLocated(args);
-
-            if (currentAppState == AppState.LookingForAnchor) //  && !spawnedObjectsWithIds.ContainsKey(args.Anchor.Identifier)
-            {
-                //currentAppState = AppState.SavingAnchor;
-                feedbackBox.text += "Anker gefunden.";
-                deletingButton.gameObject.SetActive(true);
-
-                if (args.Status == LocateAnchorStatus.Located)
-                {
-                    currentCloudAnchor = args.Anchor;
-                    UnityDispatcher.InvokeOnAppThread(() =>
-                    {
-                        //currentAppState = AppState.DemoStepDeleteFoundAnchor;
-                        Pose anchorPose = Pose.identity;
-
-#if UNITY_ANDROID || UNITY_IOS
-                    anchorPose = currentCloudAnchor.GetPose ();
-#endif
-                        // HoloLens: The position will be set based on the unityARUserAnchor that was located.
-                        SpawnOrMoveCurrentAnchoredObject(anchorPose.position, anchorPose.rotation);
-                        spawnedObject = null;
-                        currentCloudAnchor = null; 
-                    });
-
-                }
-            }
-        }*/
-
         private List<CloudSpatialAnchor> _allAnchors = new List<CloudSpatialAnchor>();
 
         protected override void OnCloudAnchorLocated(AnchorLocatedEventArgs args)
@@ -391,18 +352,25 @@ namespace Microsoft.Azure.SpatialAnchors.Unity
             {
                 //currentAppState = AppState.SavingAnchor;
                 feedbackBox.text += "Anker gefunden.";
-                deletingButton.gameObject.SetActive(true);
-
+                
                 if (args.Status == LocateAnchorStatus.Located)
                 {
                     currentCloudAnchor = args.Anchor;
                     _allAnchors.Add(currentCloudAnchor);
+                    anchorsLocated++;
                 }
+
+                 speechBubbleText.text = "There are " + anchorsLocated + " Anchors here. Press Show to see where they are.";
             }
         }
 
         public void ShowAllAnchors()
         {
+            showButton.gameObject.SetActive(false); ///// BUTTON
+            doneButton.gameObject.SetActive(true); ///// BUTTON
+
+            speechBubbleText.text = "Look around to find all anchors.";
+            anchorsLocated = 0;
             CleanupSpawnedObjects();
             UnityDispatcher.InvokeOnAppThread(() =>
                     {

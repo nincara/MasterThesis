@@ -14,7 +14,7 @@ namespace Microsoft.Azure.SpatialAnchors.Unity
         #region Member Variables
         private Task advanceDemoTask = null;
         protected bool isErrorActive = false;
-        protected Text feedbackBox, feedbackBoxExtra, idInput;
+        protected Text feedbackBox, feedbackBoxExtra, speechBubbleText;
         //protected InputField idInputField;
         protected readonly List<string> anchorIdsToLocate = new List<string>();
         protected AnchorLocateCriteria anchorLocateCriteria = null;
@@ -76,8 +76,7 @@ namespace Microsoft.Azure.SpatialAnchors.Unity
         {
             feedbackBox = GameObject.Find("Textfield").GetComponent<Text>();
             feedbackBoxExtra = GameObject.Find("Textfield_Extra").GetComponent<Text>();
-            //idInputField = GameObject.Find("IdInput").GetComponent<InputField>();
-            //idInputField.interactable = false;
+            speechBubbleText = GameObject.Find("InfoSpeechBubble_Text").GetComponent<Text>();
 
             if (feedbackBox == null)
             {
@@ -170,14 +169,13 @@ namespace Microsoft.Azure.SpatialAnchors.Unity
                 Destroy(spawnedObjectMat);
                 spawnedObjectMat = null;
             }
+
         }
 
         protected CloudSpatialAnchorWatcher CreateWatcher()
         {
-            //feedbackBox.text += "CreateWatcher() aufgerufen. " + "Cloud Manager: " +CloudManager+ ". Session: " +CloudManager.Session+ ". ";
             if ((CloudManager != null) && (CloudManager.Session != null))
             {
-                //feedbackBox.text += "CreateWatcher() ausgeführt.";
                 return CloudManager.Session.CreateWatcher(anchorLocateCriteria);
             }
             else
@@ -432,25 +430,23 @@ namespace Microsoft.Azure.SpatialAnchors.Unity
             {
                 await Task.Delay(330);
                 float createProgress = CloudManager.SessionStatus.RecommendedForCreateProgress;
-                feedbackBox.text = $"Move your device to capture more environment data: {createProgress:0%}";
+                speechBubbleText.text = $"Move your device to capture more environment data: {createProgress:0%}";
             }
 
             bool success = false;
 
-            feedbackBox.text = "Saving...";
+            speechBubbleText.text = "Saving...";
 
             try
             {
                 // Actually save
-                cloudAnchor.AppProperties[@"name"] = @"Default Name";
+                //cloudAnchor.AppProperties[@"name"] = @"Default Name";
                 await CloudManager.CreateAnchorAsync(cloudAnchor);
-                feedbackBox.text += "Der Name des Anchors ist " + cloudAnchor.AppProperties[@"name"] + ".";
+                //feedbackBox.text += "Der Name des Anchors ist " + cloudAnchor.AppProperties[@"name"] + ".";
 
                 // Store
                 currentCloudAnchor = cloudAnchor;
-                feedbackBox.text += "Anchor Id: " + currentCloudAnchor.Identifier + ". Copy it to clipboard to find the Anchor.";
-                //idInputField.text = currentCloudAnchor.Identifier;
-
+    
                 // Success?
                 success = currentCloudAnchor != null;
 
@@ -459,7 +455,7 @@ namespace Microsoft.Azure.SpatialAnchors.Unity
                     // Await override, which may perform additional tasks
                     // such as storing the key in the AnchorExchanger
                     await OnSaveCloudAnchorSuccessfulAsync();
-                    feedbackBox.text = "Saving successful!";
+                    speechBubbleText.text = "Saving successful!";
                 }
                 else
                 {
