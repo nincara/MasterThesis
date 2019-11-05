@@ -17,7 +17,9 @@ namespace Microsoft.Azure.SpatialAnchors.Unity
             PlacingAnchor,
             StoppingSession,
             LookingForAnchor,
-            SavingAnchor
+            SavingAnchor,
+            InfoCanvas,
+            FoundAnchor
         }
 
         private readonly Dictionary<AppState, DemoStepParams> stateParams = new Dictionary<AppState, DemoStepParams> { { AppState.Default, new DemoStepParams () { StepMessage = "Choose an Option.", StepColor = Color.red } },
@@ -25,7 +27,9 @@ namespace Microsoft.Azure.SpatialAnchors.Unity
             { AppState.PlacingAnchor, new DemoStepParams () { StepMessage = "Place an Anchor.", StepColor = Color.black } },
             { AppState.StoppingSession, new DemoStepParams () { StepMessage = "Stopping the Session.", StepColor = Color.black } },
             { AppState.LookingForAnchor, new DemoStepParams () { StepMessage = "Looking for Anchors.", StepColor = Color.green } },
-            { AppState.SavingAnchor, new DemoStepParams () { StepMessage = "Saving Anchor.", StepColor = Color.green } }
+            { AppState.SavingAnchor, new DemoStepParams () { StepMessage = "Saving Anchor.", StepColor = Color.green } },
+            { AppState.InfoCanvas, new DemoStepParams () { StepMessage = "Info Canvas opened.", StepColor = Color.green } },
+            { AppState.FoundAnchor, new DemoStepParams () { StepMessage = "Anchor Found.", StepColor = Color.green } }
         };
 
         private AppState _currentAppState = AppState.Default;
@@ -37,6 +41,10 @@ namespace Microsoft.Azure.SpatialAnchors.Unity
         private string baseSharingUrl = "";
         private int anchorsLocated;
         private Button placingButton, findingButton, finishButton, showButton, doneButton;
+        GameObject toggleCanvas, toggleOutput;
+        Text nameText, descriptionText;
+
+        public Camera arCamera;
 
         AppState currentAppState
         {
@@ -77,6 +85,8 @@ namespace Microsoft.Azure.SpatialAnchors.Unity
                 return;
             }
 
+            speechBubbleText.text = "App is loading...";
+
             placingButton = GameObject.Find("PlacingObject").GetComponent<Button>();
             findingButton = GameObject.Find("FindingObject").GetComponent<Button>();
             finishButton = GameObject.Find("FinishedPlacing").GetComponent<Button>();
@@ -87,9 +97,20 @@ namespace Microsoft.Azure.SpatialAnchors.Unity
             showButton.gameObject.SetActive(false); ///// BUTTON
             doneButton.gameObject.SetActive(false); ///// BUTTON
 
+            placingButton.interactable = false; ///// BUTTON
+            findingButton.interactable = false; ///// BUTTON
+
+            arCamera = GameObject.Find("ARCamera").GetComponent<Camera>();
+
+            nameText = GameObject.Find("NameOutput").GetComponent<Text>();
+            descriptionText = GameObject.Find("DescriptionOutput").GetComponent<Text>();
+
+            toggleCanvas = GameObject.Find("InputCanvas");
+            toggleOutput = GameObject.Find("OutputCanvas");
+            toggleCanvas.SetActive(false);
+            toggleOutput.SetActive(false);
+
             SpatialAnchorSamplesConfig samplesConfig = Resources.Load<SpatialAnchorSamplesConfig>("SpatialAnchorSamplesConfig");
-            feedbackBox.text += "Samples Config: " + samplesConfig + " . ";
-            feedbackBox.text += "Samples Config BaseURL: " + samplesConfig.BaseSharingURL + " . ";
 
             if (string.IsNullOrWhiteSpace(BaseSharingUrl) && samplesConfig != null)
             {
@@ -124,7 +145,7 @@ namespace Microsoft.Azure.SpatialAnchors.Unity
         } // End Start
 
         // Update is called once per frame
-        public override void Update()
+        public async override void Update()
         {
             base.Update();
 
@@ -139,9 +160,71 @@ namespace Microsoft.Azure.SpatialAnchors.Unity
                 rat += (Mathf.Min(createProgress, 1) * 0.9f);
                 spawnedObjectMat.color = GetStepColor() * rat;
             }
+
+            if (Input.touchCount > 0 && currentAppState == AppState.FoundAnchor)
+            {
+                for (int i = 0; i < Input.touchCount; i++)
+                {
+                    Touch touch = Input.GetTouch(i);
+                    if (touch.phase == TouchPhase.Ended)
+                    {
+                        Ray screenRay = Camera.main.ScreenPointToRay(touch.position);
+                        RaycastHit hit;
+
+                        if (Physics.Raycast(screenRay, out hit))
+                        {
+                            if (hit.collider.CompareTag("3DObject"))
+                            {
+                                GameObject obj = hit.collider.gameObject;
+                                CloudNativeAnchor cna = obj.GetComponent<CloudNativeAnchor>();
+                                if (cna.CloudAnchor == null) { cna.NativeToCloud(); }
+                                CloudSpatialAnchor anchorObject = cna.CloudAnchor;
+                                string indent = GetLocalIdentifier(obj);
+                                feedbackBox.text += "Local Identifier: " + indent;
+                                SetPropertiesPanel(indent);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        public string GetLocalIdentifier(GameObject obj)
+        {
+            string init = "";
+            for (int i = 0; i < _spawnedObjects.Count; i++)
+            {
+                if (obj.Equals(_spawnedObjects[i]))
+                {
+                    init = _allAnchors[i].Identifier;
+                }
+            }
+            return init;
         }
 
-        public void toggleFeedbackText(){
+        public async void SetPropertiesPanel(string init)
+        {
+            CloudSpatialAnchor _csa = await CloudManager.Session.GetAnchorPropertiesAsync(init);
+
+            feedbackBox.text += "CloudAnchor: " + _csa + ". ";
+
+            if (_csa.AppProperties.ContainsKey(@"name"))
+            {
+                feedbackBox.text += "Key vorhanden. ";
+                anchorName = _csa.AppProperties[@"name"];
+                anchorDescription = _csa.AppProperties[@"description"];
+                feedbackBox.text += "Anchor - Name: " + anchorName + ", Description: " + anchorDescription + ". ";
+                nameText.text = anchorName;
+                descriptionText.text = anchorDescription;
+                ToggleOutputCanvas();
+            }
+            else
+            {
+                feedbackBox.text += "Key nicht vorhanden. ";
+            }
+        }
+
+        public void toggleFeedbackText()
+        {
             feedbackBox.enabled = !feedbackBox.enabled;
             feedbackBoxExtra.enabled = !feedbackBoxExtra.enabled;
         }
@@ -193,11 +276,12 @@ namespace Microsoft.Azure.SpatialAnchors.Unity
 
         public async void StartingSession()
         {
-            currentAppState = AppState.StartingSession;
+            currentAppState = AppState.StartingSession; ////// App State
             speechBubbleText.text = "Trying to place an Object now. ";
 
             finishButton.gameObject.SetActive(true); ////// BUTTON 
-            placingButton.interactable = false; ////// BUTTON 
+            placingButton.interactable = false; ////// BUTTON
+            findingButton.interactable = false;
 
             if (CloudManager.Session == null)
             {
@@ -212,29 +296,73 @@ namespace Microsoft.Azure.SpatialAnchors.Unity
             await CloudManager.StartSessionAsync();
             feedbackBox.text += "Session started. ";
 
-            currentAppState = AppState.PlacingAnchor;
+            currentAppState = AppState.PlacingAnchor; ////// App State
         }
 
-        public async void PlacingObjects()
+        public void ToggleInputCanvas()
         {
-            currentAppState = AppState.StoppingSession;
-            finishButton.gameObject.SetActive(false); ////// BUTTON 
-
-            if (spawnedObject != null)
+            if (toggleCanvas.activeSelf)
             {
-                await SaveCurrentObjectAnchorToCloudAsync();
-                StoreAllAnchorKeys();
+                toggleCanvas.SetActive(false);
             }
+            else
+            {
+                toggleCanvas.SetActive(true);
+                currentAppState = AppState.SavingAnchor;
+            }
+        }
 
-            CloudManager.StopSession();
-            CleanupSpawnedObjects();
+        public void ToggleOutputCanvas()
+        {
+                if (toggleOutput.activeSelf)
+                {
+                    toggleOutput.SetActive(false);
+                    currentAppState = AppState.FoundAnchor;
+                }
+                else
+                {
+                    toggleOutput.SetActive(true);
+                    currentAppState = AppState.InfoCanvas;
+                }
+        }
 
-            feedbackBox.text += "Session beendet. ";
+        public async void DonePlacingObjects()
+        {
+            if (currentAppState == AppState.SavingAnchor)
+            {
+                InputField nameInput = GameObject.Find("NameInput").GetComponent<InputField>();
+                InputField desInput = GameObject.Find("DescriptionInput").GetComponent<InputField>();
 
-            await CloudManager.ResetSessionAsync(); // Attention! 
-            placingButton.interactable = true; ////// BUTTON 
+                anchorName = nameInput.text.ToString();
+                anchorDescription = desInput.text.ToString();
 
-            currentAppState = AppState.Default;
+                feedbackBoxExtra.text = "Eingegebene Name: " + anchorName + ", Description: " + anchorDescription + ". ";
+
+                if (!String.IsNullOrWhiteSpace(anchorName) && !String.IsNullOrWhiteSpace(anchorDescription))
+                {
+                    ToggleInputCanvas();
+
+                    currentAppState = AppState.StoppingSession; ////// App State
+                    finishButton.gameObject.SetActive(false); ////// BUTTON 
+
+                    speechBubbleText.text = "Saving Anchor, please wait.";
+
+                    if (spawnedObject != null)
+                    {
+                        await SaveCurrentObjectAnchorToCloudAsync();
+                        StoreAllAnchorKeys();
+                    }
+
+                    CloudManager.StopSession();
+                    CleanupSpawnedObjects();
+
+                    speechBubbleText.text += "Session endet. Name: " + currentCloudAnchor.AppProperties[@"name"] + ". ";
+
+                    await CloudManager.ResetSessionAsync(); // Attention! 
+
+                    currentAppState = AppState.Default; ////// App State
+                }
+            }
         }
 
         public async void DeletingAnchor()
@@ -259,29 +387,13 @@ namespace Microsoft.Azure.SpatialAnchors.Unity
 
         }
 
-        public async void StoppingSession()
-        {
-            doneButton.gameObject.SetActive(false);
-            
-            CloudManager.StopSession();
-            currentWatcher = null;
-            currentCloudAnchor = null;
-            CleanupSpawnedObjects();
-            spawnedObjectsWithIds.Clear();
-            feedbackBox.text += "Session beendet. ";
-
-            await CloudManager.ResetSessionAsync(); // Attention! 
-            findingButton.interactable = true;
-
-            currentAppState = AppState.Default;
-        }
-
         public async void LookingForObject()
         {
-            currentAppState = AppState.LookingForAnchor;
+            currentAppState = AppState.LookingForAnchor; ////// App State
             speechBubbleText.text = "Trying to look for an Object now. ";
 
             findingButton.interactable = false; ////// BUTTON 
+            placingButton.interactable = false;
             showButton.gameObject.SetActive(true); ////// BUTTON 
 
             if (CloudManager.Session == null)
@@ -304,6 +416,33 @@ namespace Microsoft.Azure.SpatialAnchors.Unity
             currentWatcher = CreateWatcher();
             feedbackBox.text += "Watcher erstellt. ";
 
+            // NOW ITS LOOKING FOR ANCHORS
+
+        }
+
+        public async void StoppingSession()
+        {
+            if (currentAppState == AppState.FoundAnchor)
+            {
+                doneButton.gameObject.SetActive(false);
+
+                CloudManager.StopSession();
+                currentWatcher = null;
+                currentCloudAnchor = null;
+                CleanupSpawnedObjects();
+                _allAnchors.Clear();
+
+                feedbackBox.text += "Session beendet. ";
+
+                await CloudManager.ResetSessionAsync(); // Attention! 
+                findingButton.interactable = true;
+                placingButton.interactable = true;
+
+                speechBubbleText.text = "Welcome!";
+
+                currentAppState = AppState.Default; ////// App State
+            }
+
         }
 
         public async void StoreAllAnchorKeys()
@@ -316,51 +455,69 @@ namespace Microsoft.Azure.SpatialAnchors.Unity
 
             feedbackBoxExtra.text += "Letzer Key: " + _lastAnchorId + ". ";
 
-            //Loop, that counts all numbers, till last key is reached -> get last key-number
-            do
+            if (!String.IsNullOrWhiteSpace(_lastAnchorId))
             {
-                _anchorNumber++; //First loop, Number 0 is checked
-                _currentAnchorId = await anchorExchanger.RetrieveAnchorKey(_anchorNumber);
-            } while (string.Compare(_currentAnchorId, _lastAnchorId) != 0);
-
-            feedbackBoxExtra.text += "Letzter Key ist die Nummer: " + _anchorNumber + ". ";
-            anchorList.Clear();
-
-            //Backwards: counts from last key-number down, till 0 reached. Stores all key-sequenzes in a List.
-            while (_anchorNumber >= 0)
-            {
-                if (!string.IsNullOrWhiteSpace(await anchorExchanger.RetrieveAnchorKey(_anchorNumber)))
+                //Loop, that counts all numbers, till last key is reached -> get last key-number
+                do
                 {
-                    anchorList.Add(await anchorExchanger.RetrieveAnchorKey(_anchorNumber));
-                    _anchorNumber--;
+                    _anchorNumber++; //First loop, Number 0 is checked
+                    _currentAnchorId = await anchorExchanger.RetrieveAnchorKey(_anchorNumber);
+                } while (string.Compare(_currentAnchorId, _lastAnchorId) != 0);
+
+                feedbackBoxExtra.text += "Letzter Key ist die Nummer: " + _anchorNumber + ". ";
+                anchorList.Clear();
+
+                //Backwards: counts from last key-number down, till 0 reached. Stores all key-sequenzes in a List.
+                while (_anchorNumber >= 0)
+                {
+                    if (!string.IsNullOrWhiteSpace(await anchorExchanger.RetrieveAnchorKey(_anchorNumber)))
+                    {
+                        anchorList.Add(await anchorExchanger.RetrieveAnchorKey(_anchorNumber));
+                        _anchorNumber--;
+                    }
                 }
+                feedbackBoxExtra.text += "Alle Keys gespeichert! Anzahl: " + anchorList.Count + ". ";
+            }
+            else
+            {
+                feedbackBox.text += "No Keys found.";
             }
 
-            feedbackBoxExtra.text += "Alle Keys gespeichert! Anzahl: + " + anchorList.Count + ". ";
+
+            if (currentAppState == AppState.Default)
+            {
+                speechBubbleText.text = "Welcome!";
+            }
+            else if (currentAppState == AppState.PlacingAnchor)
+            {
+                speechBubbleText.text = "Saving successful.";
+            }
+            placingButton.interactable = true;
+            findingButton.interactable = true;
 #endif
         }
 
         private List<GameObject> _spawnedObjects = new List<GameObject>();
-        readonly Dictionary<string, GameObject> spawnedObjectsWithIds = new Dictionary<string, GameObject>();
+        readonly Dictionary<string, GameObject> _spawnedObjectsWithIds = new Dictionary<string, GameObject>();
         private List<CloudSpatialAnchor> _allAnchors = new List<CloudSpatialAnchor>();
 
         protected override void OnCloudAnchorLocated(AnchorLocatedEventArgs args)
         {
             base.OnCloudAnchorLocated(args);
 
-            if (currentAppState == AppState.LookingForAnchor) //  && !spawnedObjectsWithIds.ContainsKey(args.Anchor.Identifier)
+            if (currentAppState == AppState.LookingForAnchor) //  && !_spawnedObjectsWithIds.ContainsKey(args.Anchor.Identifier)
             {
-                //currentAppState = AppState.SavingAnchor;
                 feedbackBox.text += "Anker gefunden.";
-                
+
                 if (args.Status == LocateAnchorStatus.Located)
                 {
                     currentCloudAnchor = args.Anchor;
-                    _allAnchors.Add(currentCloudAnchor);
+                    feedbackBox.text += "Identifier: " + currentCloudAnchor.Identifier + ". ";
+                    _allAnchors.Add(currentCloudAnchor); // Save Anchor in List
                     anchorsLocated++;
                 }
 
-                 speechBubbleText.text = "There are " + anchorsLocated + " Anchors here. Press Show to see where they are.";
+                speechBubbleText.text = "You located " + anchorsLocated + "/" + anchorList.Count + " Anchor(s). Press Show to see where they are.";
             }
         }
 
@@ -369,7 +526,9 @@ namespace Microsoft.Azure.SpatialAnchors.Unity
             showButton.gameObject.SetActive(false); ///// BUTTON
             doneButton.gameObject.SetActive(true); ///// BUTTON
 
-            speechBubbleText.text = "Look around to find all anchors.";
+            currentAppState = AppState.FoundAnchor;
+
+            speechBubbleText.text = "There should be " + _allAnchors.Count + " Anchor(s) here.";
             anchorsLocated = 0;
             CleanupSpawnedObjects();
             UnityDispatcher.InvokeOnAppThread(() =>
@@ -379,20 +538,22 @@ namespace Microsoft.Azure.SpatialAnchors.Unity
                             Pose anchorPose = Pose.identity;
 
 #if UNITY_ANDROID || UNITY_IOS
-                    anchorPose = currentCloudAnchor.GetPose ();
+                            anchorPose = anchor.GetPose ();
 #endif
                             // HoloLens: The position will be set based on the unityARUserAnchor that was located.
                             GameObject _localSpawnedObject = SpawnNewAnchoredObject(anchorPose.position, anchorPose.rotation, anchor);
+                            //feedbackBox.text += "Id bei Spawn: " + _localSpawnedObject.GetComponent<CloudNativeAnchor>().CloudAnchor.Identifier;
                             _spawnedObjects.Add(_localSpawnedObject);
+                            feedbackBox.text += "Spawned: " + _spawnedObjects.Count + " Objects.";
                         }
                     });
         }
 
         protected override void SpawnOrMoveCurrentAnchoredObject(Vector3 worldPos, Quaternion worldRot)
         {
-            if (currentCloudAnchor != null && spawnedObjectsWithIds.ContainsKey(currentCloudAnchor.Identifier))
+            if (currentCloudAnchor != null && _spawnedObjectsWithIds.ContainsKey(currentCloudAnchor.Identifier))
             {
-                spawnedObject = spawnedObjectsWithIds[currentCloudAnchor.Identifier];
+                spawnedObject = _spawnedObjectsWithIds[currentCloudAnchor.Identifier];
             }
 
             bool spawnedNewObject = spawnedObject == null;
@@ -404,17 +565,17 @@ namespace Microsoft.Azure.SpatialAnchors.Unity
             if (spawnedNewObject)
             {
                 _spawnedObjects.Add(spawnedObject);
-                if (currentCloudAnchor != null && spawnedObjectsWithIds.ContainsKey(currentCloudAnchor.Identifier) == false)
+                if (currentCloudAnchor != null && _spawnedObjectsWithIds.ContainsKey(currentCloudAnchor.Identifier) == false)
                 {
-                    spawnedObjectsWithIds.Add(currentCloudAnchor.Identifier, spawnedObject);
+                    _spawnedObjectsWithIds.Add(currentCloudAnchor.Identifier, spawnedObject);
                 }
             }
 
 #if WINDOWS_UWP || UNITY_WSA
             if (currentCloudAnchor != null
-                    && spawnedObjectsWithIds.ContainsKey(currentCloudAnchor.Identifier) == false)
+                    && _spawnedObjectsWithIds.ContainsKey(currentCloudAnchor.Identifier) == false)
             {
-                spawnedObjectsWithIds.Add(currentCloudAnchor.Identifier, spawnedObject);
+                _spawnedObjectsWithIds.Add(currentCloudAnchor.Identifier, spawnedObject);
             }
 #endif
         }

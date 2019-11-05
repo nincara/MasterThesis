@@ -15,6 +15,7 @@ namespace Microsoft.Azure.SpatialAnchors.Unity
         private Task advanceDemoTask = null;
         protected bool isErrorActive = false;
         protected Text feedbackBox, feedbackBoxExtra, speechBubbleText;
+        protected string anchorName, anchorDescription;
         //protected InputField idInputField;
         protected readonly List<string> anchorIdsToLocate = new List<string>();
         protected AnchorLocateCriteria anchorLocateCriteria = null;
@@ -184,14 +185,12 @@ namespace Microsoft.Azure.SpatialAnchors.Unity
             }
         }
 
-        public void SetIdCriteria(string[] criteria) 
+        public void SetIdCriteria(string[] criteria)
         {
-            //feedbackBox.text += "Anchor Kriterien: " + anchorLocateCriteria.Identifiers+ ". "; 
-            //anchorLocateCriteria.Identifiers = new string[] {"9647d3f9-41f8-4601-a4ca-a275bf520812"};
-            //string criteriaTwo = "9647d3f9-41f8-4601-a4ca-a275bf520812";
-            ResetAnchorIdsToLocate();              
-            //anchorLocateCriteria.Identifiers = new string[]{};
+            ResetAnchorIdsToLocate();
+            //anchorLocateCriteria.RequestedCategories = AnchorDataCategory.Properties;
             anchorLocateCriteria.Identifiers = criteria;
+            
         }
 
         protected void SetAnchorIdsToLocate(IEnumerable<string> anchorIds)
@@ -320,13 +319,13 @@ namespace Microsoft.Azure.SpatialAnchors.Unity
         /// </summary>
         protected override void OnGazeInteraction()
         {
-            #if WINDOWS_UWP || UNITY_WSA
+#if WINDOWS_UWP || UNITY_WSA
             // HoloLens gaze interaction
             if (IsPlacingObject())
             {
                 base.OnGazeInteraction();
             }
-            #endif
+#endif
         }
 
         /// <summary>
@@ -338,10 +337,10 @@ namespace Microsoft.Azure.SpatialAnchors.Unity
         {
             base.OnGazeObjectInteraction(hitPoint, hitNormal);
 
-            #if WINDOWS_UWP || UNITY_WSA
+#if WINDOWS_UWP || UNITY_WSA
             Quaternion rotation = Quaternion.FromToRotation(Vector3.up, hitNormal);
             SpawnOrMoveCurrentAnchoredObject(hitPoint, rotation);
-            #endif
+#endif
         }
 
         /// <summary>
@@ -373,10 +372,10 @@ namespace Microsoft.Azure.SpatialAnchors.Unity
         /// <remarks>Currently only called for HoloLens.</remarks>
         protected override void OnSelectInteraction()
         {
-            #if WINDOWS_UWP || UNITY_WSA
+#if WINDOWS_UWP || UNITY_WSA
             // On HoloLens, we just advance the demo.
             UnityDispatcher.InvokeOnAppThread(() => advanceDemoTask = AdvanceDemoAsync());
-            #endif
+#endif
 
             base.OnSelectInteraction();
         }
@@ -391,6 +390,7 @@ namespace Microsoft.Azure.SpatialAnchors.Unity
             if (IsPlacingObject())
             {
                 Quaternion rotation = Quaternion.AngleAxis(0, Vector3.up);
+                //Quaternion rotation = AnchoredObjectPrefab.transform.rotation;
 
                 SpawnOrMoveCurrentAnchoredObject(hitPoint, rotation);
             }
@@ -421,8 +421,9 @@ namespace Microsoft.Azure.SpatialAnchors.Unity
 
             // Get the cloud portion of the anchor
             CloudSpatialAnchor cloudAnchor = cna.CloudAnchor;
-            //cloudAnchor.AppProperties[@"label"] = @"myApp";
 
+
+            //await CloudManager.UpdateAnchorPropertiesAsync(anchor);
             // In this sample app we delete the cloud anchor explicitly, but here we show how to set an anchor to expire automatically
             cloudAnchor.Expiration = DateTimeOffset.Now.AddDays(7);
 
@@ -439,6 +440,10 @@ namespace Microsoft.Azure.SpatialAnchors.Unity
 
             try
             {
+                cloudAnchor.AppProperties.Add(@"name", anchorName);
+                cloudAnchor.AppProperties.Add(@"description", anchorDescription);
+
+                feedbackBoxExtra.text = "Propertie Name: " + cloudAnchor.AppProperties[@"name"] + ", Description: " + cloudAnchor.AppProperties[@"description"] + ". ";
                 // Actually save
                 //cloudAnchor.AppProperties[@"name"] = @"Default Name";
                 await CloudManager.CreateAnchorAsync(cloudAnchor);
@@ -446,7 +451,7 @@ namespace Microsoft.Azure.SpatialAnchors.Unity
 
                 // Store
                 currentCloudAnchor = cloudAnchor;
-    
+
                 // Success?
                 success = currentCloudAnchor != null;
 
@@ -478,13 +483,12 @@ namespace Microsoft.Azure.SpatialAnchors.Unity
         {
             // Create the prefab
             GameObject newGameObject = GameObject.Instantiate(AnchoredObjectPrefab, worldPos, worldRot);
-
             // Attach a cloud-native anchor behavior to help keep cloud
             // and native anchors in sync.
             newGameObject.AddComponent<CloudNativeAnchor>();
 
             // Set the color
-            newGameObject.GetComponent<MeshRenderer>().material.color = GetStepColor();
+            //newGameObject.GetComponent<MeshRenderer>().material.color = GetStepColor();
 
             // Return created object
             return newGameObject;
@@ -501,16 +505,19 @@ namespace Microsoft.Azure.SpatialAnchors.Unity
         {
             // Create the object like usual
             GameObject newGameObject = SpawnNewAnchoredObject(worldPos, worldRot);
+            //newGameObject.AnchorData = new AnchorData(cloudSpatialAnchor.Identifier, cloudSpatialAnchor.AppProperties[@"name"], cloudSpatialAnchor.AppProperties[@"description"]);
+            //newGameObject.transform.LookAt(Camera.main.transform);
 
             // If a cloud anchor is passed, apply it to the native anchor
             if (cloudSpatialAnchor != null)
             {
                 CloudNativeAnchor cloudNativeAnchor = newGameObject.GetComponent<CloudNativeAnchor>();
                 cloudNativeAnchor.CloudToNative(cloudSpatialAnchor);
+                //feedbackBox.text += "ID bei Spawn: "+ cloudNativeAnchor.CloudAnchor.Identifier;
             }
 
             // Set color
-            newGameObject.GetComponent<MeshRenderer>().material.color = GetStepColor();
+            //newGameObject.GetComponent<MeshRenderer>().material.color = GetStepColor();
 
             // Return newly created object
             return newGameObject;
@@ -532,7 +539,7 @@ namespace Microsoft.Azure.SpatialAnchors.Unity
                 spawnedObject = SpawnNewAnchoredObject(worldPos, worldRot, currentCloudAnchor);
 
                 // Update color
-                spawnedObjectMat = spawnedObject.GetComponent<MeshRenderer>().material;
+                //spawnedObjectMat = spawnedObject.GetComponent<MeshRenderer>().material;
             }
             else
             {
