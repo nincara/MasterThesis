@@ -190,7 +190,7 @@ namespace Microsoft.Azure.SpatialAnchors.Unity
             ResetAnchorIdsToLocate();
             //anchorLocateCriteria.RequestedCategories = AnchorDataCategory.Properties;
             anchorLocateCriteria.Identifiers = criteria;
-            
+
         }
 
         protected void SetAnchorIdsToLocate(IEnumerable<string> anchorIds)
@@ -483,6 +483,7 @@ namespace Microsoft.Azure.SpatialAnchors.Unity
         {
             // Create the prefab
             GameObject newGameObject = GameObject.Instantiate(AnchoredObjectPrefab, worldPos, worldRot);
+
             // Attach a cloud-native anchor behavior to help keep cloud
             // and native anchors in sync.
             newGameObject.AddComponent<CloudNativeAnchor>();
@@ -505,12 +506,25 @@ namespace Microsoft.Azure.SpatialAnchors.Unity
         {
             // Create the object like usual
             GameObject newGameObject = SpawnNewAnchoredObject(worldPos, worldRot);
-            //newGameObject.AnchorData = new AnchorData(cloudSpatialAnchor.Identifier, cloudSpatialAnchor.AppProperties[@"name"], cloudSpatialAnchor.AppProperties[@"description"]);
-            //newGameObject.transform.LookAt(Camera.main.transform);
+            if (!IsPlacingObject())
+            {
+                //Save Data in AnchorData Script on spawned Object
+
+                //Konstruktor geht nicht!
+                AnchorData data = newGameObject.GetComponent<AnchorData>();
+                //data = new AnchorData(cloudSpatialAnchor.Identifier, cloudSpatialAnchor.AppProperties[@"name"], cloudSpatialAnchor.AppProperties[@"description"]);
+
+                data.AnchorName = cloudSpatialAnchor.AppProperties[@"name"];
+                data.AnchorDescription = cloudSpatialAnchor.AppProperties[@"description"];
+                data.AnchorId = cloudSpatialAnchor.Identifier;
+
+                feedbackBox.text += "AnchorData Speichern - Name: " + newGameObject.GetComponent<AnchorData>().AnchorName + ", Description: " + newGameObject.GetComponent<AnchorData>().AnchorDescription + ". ";
+            }
 
             // If a cloud anchor is passed, apply it to the native anchor
             if (cloudSpatialAnchor != null)
             {
+                //Here ID goes missing!!! 
                 CloudNativeAnchor cloudNativeAnchor = newGameObject.GetComponent<CloudNativeAnchor>();
                 cloudNativeAnchor.CloudToNative(cloudSpatialAnchor);
                 //feedbackBox.text += "ID bei Spawn: "+ cloudNativeAnchor.CloudAnchor.Identifier;

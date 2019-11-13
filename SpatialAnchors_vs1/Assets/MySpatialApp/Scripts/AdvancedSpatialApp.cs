@@ -176,18 +176,19 @@ namespace Microsoft.Azure.SpatialAnchors.Unity
                             if (hit.collider.CompareTag("3DObject"))
                             {
                                 GameObject obj = hit.collider.gameObject;
-                                CloudNativeAnchor cna = obj.GetComponent<CloudNativeAnchor>();
+                                /*CloudNativeAnchor cna = obj.GetComponent<CloudNativeAnchor>();
                                 if (cna.CloudAnchor == null) { cna.NativeToCloud(); }
                                 CloudSpatialAnchor anchorObject = cna.CloudAnchor;
                                 string indent = GetLocalIdentifier(obj);
-                                feedbackBox.text += "Local Identifier: " + indent;
-                                SetPropertiesPanel(indent);
+                                feedbackBox.text += "Local Identifier: " + indent;*/
+                                SetPropertiesPanel(obj);
                             }
                         }
                     }
                 }
             }
         }
+
         public string GetLocalIdentifier(GameObject obj)
         {
             string init = "";
@@ -201,9 +202,27 @@ namespace Microsoft.Azure.SpatialAnchors.Unity
             return init;
         }
 
-        public async void SetPropertiesPanel(string init)
+        public async void SetPropertiesPanel(GameObject obj) //string init
         {
-            CloudSpatialAnchor _csa = await CloudManager.Session.GetAnchorPropertiesAsync(init);
+            AnchorData data = obj.GetComponent<AnchorData>();
+            feedbackBox.text += "AnchorData Abrufen - Name " +data.AnchorName + ", Description: " + data.AnchorDescription + ". ";
+
+            if (data.AnchorName != null)
+            {
+                anchorName =obj.GetComponent<AnchorData>().AnchorName;
+                anchorDescription = obj.GetComponent<AnchorData>().AnchorDescription;
+
+                nameText.text = anchorName;
+                descriptionText.text = anchorDescription;
+                ToggleOutputCanvas();
+            }
+            else
+            {
+                feedbackBox.text += "Daten wurden nicht gespeichert.";
+            }
+
+            //Alternativer Weg - BEHALTEN.
+            /*CloudSpatialAnchor _csa = await CloudManager.Session.GetAnchorPropertiesAsync(init);
 
             feedbackBox.text += "CloudAnchor: " + _csa + ". ";
 
@@ -220,7 +239,8 @@ namespace Microsoft.Azure.SpatialAnchors.Unity
             else
             {
                 feedbackBox.text += "Key nicht vorhanden. ";
-            }
+            }*/
+
         }
 
         public void toggleFeedbackText()
@@ -287,6 +307,8 @@ namespace Microsoft.Azure.SpatialAnchors.Unity
             {
                 await CloudManager.CreateSessionAsync();
                 feedbackBox.text += "Session created. ";
+            } else {
+                CloudManager.ResetSessionAsync();
             }
             currentAnchorId = "";
             currentCloudAnchor = null;
@@ -314,16 +336,16 @@ namespace Microsoft.Azure.SpatialAnchors.Unity
 
         public void ToggleOutputCanvas()
         {
-                if (toggleOutput.activeSelf)
-                {
-                    toggleOutput.SetActive(false);
-                    currentAppState = AppState.FoundAnchor;
-                }
-                else
-                {
-                    toggleOutput.SetActive(true);
-                    currentAppState = AppState.InfoCanvas;
-                }
+            if (toggleOutput.activeSelf)
+            {
+                toggleOutput.SetActive(false);
+                currentAppState = AppState.FoundAnchor;
+            }
+            else
+            {
+                toggleOutput.SetActive(true);
+                currentAppState = AppState.InfoCanvas;
+            }
         }
 
         public async void DonePlacingObjects()
@@ -335,6 +357,9 @@ namespace Microsoft.Azure.SpatialAnchors.Unity
 
                 anchorName = nameInput.text.ToString();
                 anchorDescription = desInput.text.ToString();
+
+                nameInput.text = "";
+                desInput.text = "";
 
                 feedbackBoxExtra.text = "Eingegebene Name: " + anchorName + ", Description: " + anchorDescription + ". ";
 
@@ -400,6 +425,8 @@ namespace Microsoft.Azure.SpatialAnchors.Unity
             {
                 await CloudManager.CreateSessionAsync();
                 feedbackBox.text += "Session created. ";
+            } else {
+                CloudManager.ResetSessionAsync();
             }
 
             currentAnchorId = "";
@@ -542,7 +569,7 @@ namespace Microsoft.Azure.SpatialAnchors.Unity
 #endif
                             // HoloLens: The position will be set based on the unityARUserAnchor that was located.
                             GameObject _localSpawnedObject = SpawnNewAnchoredObject(anchorPose.position, anchorPose.rotation, anchor);
-                            //feedbackBox.text += "Id bei Spawn: " + _localSpawnedObject.GetComponent<CloudNativeAnchor>().CloudAnchor.Identifier;
+                            
                             _spawnedObjects.Add(_localSpawnedObject);
                             feedbackBox.text += "Spawned: " + _spawnedObjects.Count + " Objects.";
                         }

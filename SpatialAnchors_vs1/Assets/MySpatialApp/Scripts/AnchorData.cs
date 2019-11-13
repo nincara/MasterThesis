@@ -22,13 +22,6 @@ namespace Microsoft.Azure.SpatialAnchors.Unity
 
         }
 
-        public AnchorData(string id, string name, string des)
-        {
-            AnchorId = id;
-            AnchorName = name;
-            AnchorDescription = des;
-        }
-
         public string AnchorId { get => anchorId; set => anchorId = value; }
         public string AnchorName { get => anchorName; set => anchorName = value; }
         public string AnchorDescription { get => anchorDescription; set => anchorDescription = value; }
