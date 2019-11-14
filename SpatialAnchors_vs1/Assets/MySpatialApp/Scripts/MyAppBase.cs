@@ -445,9 +445,8 @@ namespace Microsoft.Azure.SpatialAnchors.Unity
 
                 feedbackBoxExtra.text = "Propertie Name: " + cloudAnchor.AppProperties[@"name"] + ", Description: " + cloudAnchor.AppProperties[@"description"] + ". ";
                 // Actually save
-                //cloudAnchor.AppProperties[@"name"] = @"Default Name";
+
                 await CloudManager.CreateAnchorAsync(cloudAnchor);
-                //feedbackBox.text += "Der Name des Anchors ist " + cloudAnchor.AppProperties[@"name"] + ".";
 
                 // Store
                 currentCloudAnchor = cloudAnchor;
