@@ -5,22 +5,10 @@ EditorBuildSettings:
   m_ObjectHideFlags: 0
   serializedVersion: 2
   m_Scenes:
-  - enabled: 0
-    path: Assets/AzureSpatialAnchors.Examples/Scenes/AzureSpatialAnchorsDemoLauncher.unity
-    guid: 4dcd43f53c599f94a80fb2408d9a15ff
-  - enabled: 0
-    path: Assets/AzureSpatialAnchors.Examples/Scenes/AzureSpatialAnchorsBasicDemo.unity
-    guid: 8eb951603c1152c4e920887a18cc2733
-  - enabled: 0
-    path: Assets/AzureSpatialAnchors.Examples/Scenes/AzureSpatialAnchorsNearbyDemo.unity
-    guid: 2e7fd4a208fcf48419d312fcf7b9553e
-  - enabled: 0
-    path: Assets/AzureSpatialAnchors.Examples/Scenes/AzureSpatialAnchorsLocalSharedDemo.unity
-    guid: f540d2472b41fdb4bb6a7f47521b0bdd
-  - enabled: 0
-    path: Assets/MySpatialApp/Scenes/BasicTestScene.unity
-    guid: 165fb7d720c111545b705a62bcfce713
   - enabled: 1
-    path: Assets/MySpatialApp/Scenes/AdvancedTestScene.unity
-    guid: 18bc27b6cc688db4b9b37bd22eac5291
+    path: Assets/MySpatialApp/Scenes/AppLauncher.unity
+    guid: d95b4b17b7e828d4b84a1ee509cdf187
+  - enabled: 1
+    path: Assets/MySpatialApp/Scenes/ResearchApp.unity
+    guid: 2b6ea3e89e6c6a2408fd0d6309cbde65
   m_configObjects: {}
