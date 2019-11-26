@@ -134,18 +134,21 @@ namespace Microsoft.Azure.SpatialAnchors.Unity
 
             if (data.AnchorName != null)
             {
-                anchorName = obj.GetComponent<AnchorData>().AnchorName;
+                /*anchorName = obj.GetComponent<AnchorData>().AnchorName;
                 anchorId = obj.GetComponent<AnchorData>().AnchorId;
                 anchorInfo = obj.GetComponent<AnchorData>().AnchorInfo;
                 anchorDate = obj.GetComponent<AnchorData>().AnchorDate;
-                anchorProgress = obj.GetComponent<AnchorData>().AnchorProgress;
+                anchorProgress = obj.GetComponent<AnchorData>().AnchorProgress;*/
 
-                uiHandler.nameOutput.text = anchorName;
-                uiHandler.idOutput.text = anchorId;
-                uiHandler.infoInput.text = anchorInfo;
+                uiHandler.nameOutput.text = obj.GetComponent<AnchorData>().AnchorName;
+                uiHandler.idOutput.text = obj.GetComponent<AnchorData>().AnchorId;
+                uiHandler.infoInput.text =obj.GetComponent<AnchorData>().AnchorInfo;
                 uiHandler.secondsOutput.text = elapsedSeconds.ToString();
-                uiHandler.dateOutput.text = anchorDate;
-                uiHandler.progressOutput.text = anchorProgress;
+                uiHandler.dateOutput.text = obj.GetComponent<AnchorData>().AnchorDate;
+                uiHandler.progressOutput.text = obj.GetComponent<AnchorData>().AnchorProgress;
+                uiHandler.keyOutput.text = obj.GetComponent<AnchorData>().AnchorKey;
+                uiHandler.positionOutput.text = obj.GetComponent<AnchorData>().AnchorPosition;
+                 uiHandler.rotationOutput.text = obj.GetComponent<AnchorData>().AnchorRotation;
             }
             else
             {

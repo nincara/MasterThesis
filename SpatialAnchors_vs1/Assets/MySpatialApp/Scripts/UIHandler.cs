@@ -11,7 +11,8 @@ namespace Microsoft.Azure.SpatialAnchors.Unity
         public Button finishPlacing, finishCollecting;
         public Button saveIdLocalize, showData;
         public GameObject toggleCanvas, toggleOutput, toggleIdInput;
-        public Text nameOutput, idOutput, dateOutput, secondsOutput, infoOutput, progressOutput;
+        public Text nameOutput, idOutput, dateOutput, secondsOutput, infoOutput, progressOutput, keyOutput;
+        public Text positionOutput, rotationOutput;
         public InputField nameInput, idInput, infoInput, idInputLocalize;
         // Start is called before the first frame update
         void Start()
@@ -48,6 +49,9 @@ namespace Microsoft.Azure.SpatialAnchors.Unity
             secondsOutput = GameObject.Find("SecondsOutput").GetComponent<Text>();
             infoOutput = GameObject.Find("InfoOutput").GetComponent<Text>();
             progressOutput = GameObject.Find("ProgressOutput").GetComponent<Text>();
+            keyOutput = GameObject.Find("KeyOutput").GetComponent<Text>();
+            positionOutput = GameObject.Find("PositionOutput").GetComponent<Text>();
+            rotationOutput = GameObject.Find("RotationOutput").GetComponent<Text>();
 
             // Cant find GameObject, if parent is inactive! 
             finishPlacing.gameObject.SetActive(false);
