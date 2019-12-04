@@ -4,14 +4,14 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Net.Http;
+using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.XR.ARSubsystems;
-using System.Runtime.InteropServices;
 #if UNITY_ANDROID || UNITY_IOS
-using UnityEngine.XR.ARFoundation;
 using System.IO;
+using UnityEngine.XR.ARFoundation;
 #endif
 #if UNITY_IOS
 using Microsoft.Azure.SpatialAnchors.Unity.IOS;
@@ -23,13 +23,11 @@ using Microsoft.Azure.SpatialAnchors.Unity.Android;
 using UnityEngine.XR.WSA;
 #endif
 
-namespace Microsoft.Azure.SpatialAnchors.Unity
-{
+namespace Microsoft.Azure.SpatialAnchors.Unity {
     /// <summary>
     /// Defines the various authentication methods.
     /// </summary>
-    public enum AuthenticationMode
-    {
+    public enum AuthenticationMode {
         /// <summary>
         /// Authentication will leverage Account ID and Account Key.
         /// </summary>
@@ -45,8 +43,7 @@ namespace Microsoft.Azure.SpatialAnchors.Unity
     /// <summary>
     /// A core behavior used to manage Azure Spatial Anchor sessions and queries in a Unity scene.
     /// </summary>
-    public class SpatialAnchorManager : MonoBehaviour
-    {
+    public class SpatialAnchorManager : MonoBehaviour {
         #region Member Variables
         private bool isSessionStarted = false;
         private CloudSpatialAnchorSession session = null;
@@ -59,43 +56,46 @@ namespace Microsoft.Azure.SpatialAnchors.Unity
         //ARFoundation specific variables
 #if UNITY_ANDROID || UNITY_IOS
         private long lastFrameProcessedTimeStamp;
-        private static Dictionary<string, ARReferencePoint> pointerToReferencePoints = new Dictionary<string, ARReferencePoint>();
-        private List<AnchorLocatedEventArgs> pendingEventArgs = new List<AnchorLocatedEventArgs>();
+        private static Dictionary<string, ARReferencePoint> pointerToReferencePoints = new Dictionary<string, ARReferencePoint> ();
+        private List<AnchorLocatedEventArgs> pendingEventArgs = new List<AnchorLocatedEventArgs> ();
         internal static ARReferencePointManager arReferencePointManager = null;
         private ARCameraManager arCameraManager = null;
         private ARSession arSession = null;
+        private ARSessionOrigin aRSessionOrigin = null;
+        private ARPointCloud pointCloud;
+        private List<Vector3> featurePoints;
         private Camera mainCamera;
 #endif // UNITY_ANDROID
 
         #endregion // Member Variables
 
         #region Unity Inspector Variables
-        [Header("Authentication")]
+        [Header ("Authentication")]
         [SerializeField]
-        [Tooltip("The method to use for authentication.")]
+        [Tooltip ("The method to use for authentication.")]
         private AuthenticationMode authenticationMode = AuthenticationMode.ApiKey;
 
-        [Header("Credentials")]
+        [Header ("Credentials")]
         [SerializeField]
-        [Tooltip("The Account ID to use when authenticating using API Key. This is provided by the Spatial Anchors service portal.")]
+        [Tooltip ("The Account ID to use when authenticating using API Key. This is provided by the Spatial Anchors service portal.")]
         private string spatialAnchorsAccountId = "";
 
         [SerializeField]
-        [Tooltip("The Account Key to use when authenticating using API Key. This is provided by the Spatial Anchors service portal.")]
+        [Tooltip ("The Account Key to use when authenticating using API Key. This is provided by the Spatial Anchors service portal.")]
         private string spatialAnchorsAccountKey = "";
 
-        [Header("Credentials")]
+        [Header ("Credentials")]
         [SerializeField]
-        [Tooltip("The Client ID to use when authenticating using Azure Active Directory.")]
+        [Tooltip ("The Client ID to use when authenticating using Azure Active Directory.")]
         private string clientId = "";
 
         [SerializeField]
-        [Tooltip("The Tenant ID to use when authenticating using Azure Active Directory.")]
+        [Tooltip ("The Tenant ID to use when authenticating using Azure Active Directory.")]
         private string tenantId = "";
 
-        [Header("Logging")]
+        [Header ("Logging")]
         [SerializeField]
-        [Tooltip("The log level for messages from the Spatial Anchors service.")]
+        [Tooltip ("The log level for messages from the Spatial Anchors service.")]
         private SessionLogLevel logLevel = SessionLogLevel.All;
         #endregion // Unity Inspector Variables
 
@@ -103,11 +103,9 @@ namespace Microsoft.Azure.SpatialAnchors.Unity
         /// <summary>
         /// Throws an exception if there is not a currently active session.
         /// </summary>
-        protected void EnsureSessionStarted()
-        {
-            if (!isSessionStarted)
-            {
-                throw new InvalidOperationException("This operation cannot be completed without an active session.");
+        protected void EnsureSessionStarted () {
+            if (!isSessionStarted) {
+                throw new InvalidOperationException ("This operation cannot be completed without an active session.");
             }
         }
 
@@ -120,29 +118,22 @@ namespace Microsoft.Azure.SpatialAnchors.Unity
         /// <param name="exception">
         /// If true, an exception will be thrown if configuration is invalid.
         /// </param>
-        private async Task<bool> EnsureValidConfiguration(bool disable, bool exception)
-        {
-            if (!await IsValidateConfiguration())
-            {
+        private async Task<bool> EnsureValidConfiguration (bool disable, bool exception) {
+            if (!await IsValidateConfiguration ()) {
                 // Define message
                 string msg = $"{nameof(SpatialAnchorManager)} is improperly configured.";
 
                 // Disable or except?
-                if (disable)
-                {
-                    Debug.LogError(msg + " It has been disabled.");
+                if (disable) {
+                    Debug.LogError (msg + " It has been disabled.");
                     this.enabled = false;
-                }
-                else if (exception)
-                {
-                    throw new InvalidOperationException(msg);
+                } else if (exception) {
+                    throw new InvalidOperationException (msg);
                 }
 
                 // Not valid
                 return false;
-            }
-            else
-            {
+            } else {
                 // Valid!
                 return true;
             }
@@ -152,15 +143,12 @@ namespace Microsoft.Azure.SpatialAnchors.Unity
         /// <summary>
         /// Sends the latest ARFoundation frame to Azure Spatial Anchors
         /// </summary>
-        private void ProcessLatestFrame()
-        {
-            if (!isSessionStarted)
-            {
+        private void ProcessLatestFrame () {
+            if (!isSessionStarted) {
                 return;
             }
 
-            var cameraParams = new XRCameraParams
-            {
+            var cameraParams = new XRCameraParams {
                 zNear = mainCamera.nearClipPlane,
                 zFar = mainCamera.farClipPlane,
                 screenWidth = Screen.width,
@@ -169,15 +157,13 @@ namespace Microsoft.Azure.SpatialAnchors.Unity
             };
 
             XRCameraFrame xRCameraFrame;
-            if (arCameraManager.subsystem.TryGetLatestFrame(cameraParams, out xRCameraFrame))
-            {
+            if (arCameraManager.subsystem.TryGetLatestFrame (cameraParams, out xRCameraFrame)) {
                 long latestFrameTimeStamp = xRCameraFrame.timestampNs;
-                
+
                 bool newFrameToProcess = latestFrameTimeStamp > lastFrameProcessedTimeStamp;
 
-                if (newFrameToProcess)
-                {
-                    session.ProcessFrame(xRCameraFrame.nativePtr.GetPlatformPointer());
+                if (newFrameToProcess) {
+                    session.ProcessFrame (xRCameraFrame.nativePtr.GetPlatformPointer ());
                     lastFrameProcessedTimeStamp = latestFrameTimeStamp;
                 }
             }
@@ -188,11 +174,9 @@ namespace Microsoft.Azure.SpatialAnchors.Unity
         /// </summary>
         /// <param name="intPtr">An ARKit or ARcore anchor pointer</param>
         /// <returns>A reference point if found or null</returns>
-        internal static ARReferencePoint ReferencePointFromPointer(IntPtr intPtr)
-        {
-            string key = intPtr.GetPlatformKey();
-            if (pointerToReferencePoints.ContainsKey(key))
-            {
+        internal static ARReferencePoint ReferencePointFromPointer (IntPtr intPtr) {
+            string key = intPtr.GetPlatformKey ();
+            if (pointerToReferencePoints.ContainsKey (key)) {
                 return pointerToReferencePoints[key];
             }
 
@@ -204,34 +188,26 @@ namespace Microsoft.Azure.SpatialAnchors.Unity
         /// When ARFoundation finds the platform anchor (usually within a frame or two) we will call the 
         /// anchor located event.
         /// </summary>
-        private void ProcessPendingEventArgs()
-        {
-            if (pendingEventArgs.Count > 0)
-            {
-                List<AnchorLocatedEventArgs> readyList = new List<AnchorLocatedEventArgs>();
-                lock (pendingEventArgs)
-                {
-                    foreach (AnchorLocatedEventArgs args in pendingEventArgs)
-                    {
-                        string lookupValue = args.Anchor.LocalAnchor.GetPlatformKey();
+        private void ProcessPendingEventArgs () {
+            if (pendingEventArgs.Count > 0) {
+                List<AnchorLocatedEventArgs> readyList = new List<AnchorLocatedEventArgs> ();
+                lock (pendingEventArgs) {
+                    foreach (AnchorLocatedEventArgs args in pendingEventArgs) {
+                        string lookupValue = args.Anchor.LocalAnchor.GetPlatformKey ();
 
-                        if (pointerToReferencePoints.ContainsKey(lookupValue))
-                        {
-                            readyList.Add(args);
+                        if (pointerToReferencePoints.ContainsKey (lookupValue)) {
+                            readyList.Add (args);
                         }
                     }
 
-                    foreach (var ready in readyList)
-                    {
-                        pendingEventArgs.Remove(ready);
+                    foreach (var ready in readyList) {
+                        pendingEventArgs.Remove (ready);
                     }
                 }
 
-                if (readyList.Count > 0)
-                {
-                    foreach (var args in readyList)
-                    {
-                        AnchorLocated?.Invoke(this, args);
+                if (readyList.Count > 0) {
+                    foreach (var args in readyList) {
+                        AnchorLocated?.Invoke (this, args);
                     }
                 }
             }
@@ -249,11 +225,11 @@ namespace Microsoft.Azure.SpatialAnchors.Unity
         /// A <see cref="Task"/> that yields the token.
         /// </returns>
 #pragma warning disable CS1998 // Conditional compile statements are removing await
-        protected virtual async Task<string> GetAADTokenAsync()
+        protected virtual async Task<string> GetAADTokenAsync ()
 #pragma warning restore CS1998
         {
             // TODO: Comment out this line when supporting AAD
-            throw new NotSupportedException("AAD requires extra manual steps. Please see AzureSpatialAnchors.SDK\\AzureSpatialAnchorsUnityPluginReadme.md");
+            throw new NotSupportedException ("AAD requires extra manual steps. Please see AzureSpatialAnchors.SDK\\AzureSpatialAnchorsUnityPluginReadme.md");
 
             // TODO: Uncomment the lines below when supporting AAD
 
@@ -277,30 +253,24 @@ namespace Microsoft.Azure.SpatialAnchors.Unity
         /// <summary>
         /// Called when the manager initializes in order to configure the service.
         /// </summary>
-        protected virtual void LoadConfiguration()
-        {
+        protected virtual void LoadConfiguration () {
             // Attempt to load configuration from config resource if present.
-            SpatialAnchorConfig config = Resources.Load<SpatialAnchorConfig>("SpatialAnchorConfig");
-            if (config != null)
-            {
+            SpatialAnchorConfig config = Resources.Load<SpatialAnchorConfig> ("SpatialAnchorConfig");
+            if (config != null) {
                 // Apply auth mode
                 authenticationMode = config.AuthenticationMode;
 
                 // Apply auth values
-                if (string.IsNullOrWhiteSpace(spatialAnchorsAccountId))
-                {
+                if (string.IsNullOrWhiteSpace (spatialAnchorsAccountId)) {
                     spatialAnchorsAccountId = config.SpatialAnchorsAccountId;
                 }
-                if (string.IsNullOrWhiteSpace(spatialAnchorsAccountKey))
-                {
+                if (string.IsNullOrWhiteSpace (spatialAnchorsAccountKey)) {
                     spatialAnchorsAccountKey = config.SpatialAnchorsAccountKey;
                 }
-                if (string.IsNullOrWhiteSpace(clientId))
-                {
+                if (string.IsNullOrWhiteSpace (clientId)) {
                     clientId = config.ClientId;
                 }
-                if (string.IsNullOrWhiteSpace(tenantId))
-                {
+                if (string.IsNullOrWhiteSpace (tenantId)) {
                     tenantId = config.TenantId;
                 }
             }
@@ -314,65 +284,56 @@ namespace Microsoft.Azure.SpatialAnchors.Unity
         /// <c>true</c> if the manager is configured and able to run.; otherwise <c>false</c>.
         /// </returns>
 #pragma warning disable CS1998 // Conditional compile statements are removing await
-        protected async virtual Task<bool> IsValidateConfiguration()
+        protected async virtual Task<bool> IsValidateConfiguration ()
 #pragma warning restore CS1998
         {
 #if !UNITY_EDITOR && (UNITY_WSA || WINDOWS_UWP)
             // Ensure that the device is running a suported build with the spatialperception capability declared.
-            
-            bool accessGranted = false;
-            try
-            {
-                Windows.Perception.Spatial.SpatialPerceptionAccessStatus accessStatus = await Windows.Perception.Spatial.SpatialAnchorExporter.RequestAccessAsync();
-                accessGranted = (accessStatus == Windows.Perception.Spatial.SpatialPerceptionAccessStatus.Allowed);
-            }
-            catch { }
 
-            if (!accessGranted)
-            {
+            bool accessGranted = false;
+            try {
+                Windows.Perception.Spatial.SpatialPerceptionAccessStatus accessStatus = await Windows.Perception.Spatial.SpatialAnchorExporter.RequestAccessAsync ();
+                accessGranted = (accessStatus == Windows.Perception.Spatial.SpatialPerceptionAccessStatus.Allowed);
+            } catch { }
+
+            if (!accessGranted) {
                 return false;
             }
 #endif
             // Check based on auth mode
-            switch (authenticationMode)
-            {
+            switch (authenticationMode) {
                 case AuthenticationMode.ApiKey:
-                    if (string.IsNullOrWhiteSpace(spatialAnchorsAccountId) || string.IsNullOrWhiteSpace(spatialAnchorsAccountKey))
-                    {
+                    if (string.IsNullOrWhiteSpace (spatialAnchorsAccountId) || string.IsNullOrWhiteSpace (spatialAnchorsAccountKey)) {
                         return false;
                     }
                     break;
 
                 case AuthenticationMode.AAD:
-                    if (string.IsNullOrWhiteSpace(clientId) || string.IsNullOrWhiteSpace(tenantId))
-                    {
+                    if (string.IsNullOrWhiteSpace (clientId) || string.IsNullOrWhiteSpace (tenantId)) {
                         return false;
                     }
                     break;
 
                 default:
-                    throw new InvalidOperationException("Unknown auth mode");
+                    throw new InvalidOperationException ("Unknown auth mode");
             }
 
 #if UNITY_ANDROID || UNITY_IOS
             // Check ARFoundation configuration
 
-            if (arCameraManager == null || !arCameraManager.enabled)
-            {
-                Debug.LogError("Need an enabled ARCameraManager in the scene");
+            if (arCameraManager == null || !arCameraManager.enabled) {
+                Debug.LogError ("Need an enabled ARCameraManager in the scene");
                 return false;
             }
-            Debug.Log("arSession is " +arSession.enabled);
-            
-            if (arSession == null || !arSession.enabled)
-            {
-                Debug.LogError("Need an enabled ARSession in the scene");
+            Debug.Log ("arSession is " + arSession.enabled);
+
+            if (arSession == null || !arSession.enabled) {
+                Debug.LogError ("Need an enabled ARSession in the scene");
                 return false;
             }
 
-            if (arReferencePointManager == null || !arReferencePointManager.enabled)
-            {
-                Debug.LogError("Need an enabled ARReferencePointManager in the scene");
+            if (arReferencePointManager == null || !arReferencePointManager.enabled) {
+                Debug.LogError ("Need an enabled ARReferencePointManager in the scene");
                 return false;
             }
 #endif
@@ -389,26 +350,21 @@ namespace Microsoft.Azure.SpatialAnchors.Unity
         /// <param name="args">
         /// The event data.
         /// </param>
-        protected virtual void OnAnchorLocated(object sender, AnchorLocatedEventArgs args)
-        {
-            if (AnchorLocated == null)
-            {
+        protected virtual void OnAnchorLocated (object sender, AnchorLocatedEventArgs args) {
+            if (AnchorLocated == null) {
                 return;
             }
 #if UNITY_ANDROID || UNITY_IOS
             // if the anchor was located, wait for ARFoundation to notice the anchor we added
             // before firing the event
-            if (args.Status == LocateAnchorStatus.Located)
-            {
-                lock (pendingEventArgs)
-                {
-                    pendingEventArgs.Add(args);
+            if (args.Status == LocateAnchorStatus.Located) {
+                lock (pendingEventArgs) {
+                    pendingEventArgs.Add (args);
                 }
-            }
-            else // otherwise there is no anchor for ARFoundation to find, so just fire the event
+            } else // otherwise there is no anchor for ARFoundation to find, so just fire the event
 #endif
             {
-                AnchorLocated?.Invoke(this, args);
+                AnchorLocated?.Invoke (this, args);
             }
         }
 
@@ -421,9 +377,8 @@ namespace Microsoft.Azure.SpatialAnchors.Unity
         /// <param name="args">
         /// The event data.
         /// </param>
-        protected virtual void OnError(object sender, SessionErrorEventArgs args)
-        {
-            Error?.Invoke(this, args);
+        protected virtual void OnError (object sender, SessionErrorEventArgs args) {
+            Error?.Invoke (this, args);
         }
 
         /// <summary>
@@ -435,9 +390,8 @@ namespace Microsoft.Azure.SpatialAnchors.Unity
         /// <param name="args">
         /// The event data.
         /// </param>
-        protected virtual void OnLocateAnchorsCompleted(object sender, LocateAnchorsCompletedEventArgs args)
-        {
-            LocateAnchorsCompleted?.Invoke(this, args);
+        protected virtual void OnLocateAnchorsCompleted (object sender, LocateAnchorsCompletedEventArgs args) {
+            LocateAnchorsCompleted?.Invoke (this, args);
         }
 
         /// <summary>
@@ -449,9 +403,8 @@ namespace Microsoft.Azure.SpatialAnchors.Unity
         /// <param name="args">
         /// The event data.
         /// </param>
-        protected virtual void OnLogDebug(object sender, OnLogDebugEventArgs args)
-        {
-            LogDebug?.Invoke(this, args);
+        protected virtual void OnLogDebug (object sender, OnLogDebugEventArgs args) {
+            LogDebug?.Invoke (this, args);
         }
 
         /// <summary>
@@ -463,9 +416,8 @@ namespace Microsoft.Azure.SpatialAnchors.Unity
         /// can cause sessions to be created or replaced. This event will fire
         /// whenever the value of the <see cref="Session"/> property has changed.
         /// </remarks>
-        protected virtual void OnSessionChanged()
-        {
-            SessionChanged?.Invoke(this, EventArgs.Empty);
+        protected virtual void OnSessionChanged () {
+            SessionChanged?.Invoke (this, EventArgs.Empty);
         }
 
         /// <summary>
@@ -474,9 +426,8 @@ namespace Microsoft.Azure.SpatialAnchors.Unity
         /// <remarks>
         /// The <see cref="Session"/> can be created by calling <see cref="CreateSessionAsync"/>.
         /// </remarks>
-        protected virtual void OnSessionCreated()
-        {
-            SessionCreated?.Invoke(this, EventArgs.Empty);
+        protected virtual void OnSessionCreated () {
+            SessionCreated?.Invoke (this, EventArgs.Empty);
         }
 
         /// <summary>
@@ -485,9 +436,8 @@ namespace Microsoft.Azure.SpatialAnchors.Unity
         /// <remarks>
         /// The <see cref="Session"/> can be destroyed by calling <see cref="DestroySession"/>.
         /// </remarks>
-        protected virtual void OnSessionDestroyed()
-        {
-            SessionDestroyed?.Invoke(this, EventArgs.Empty);
+        protected virtual void OnSessionDestroyed () {
+            SessionDestroyed?.Invoke (this, EventArgs.Empty);
         }
 
         /// <summary>
@@ -500,9 +450,8 @@ namespace Microsoft.Azure.SpatialAnchors.Unity
         /// <see cref="StopSession"/> methods rather than calling methods
         /// directly on the <see cref="Session"/> instance.
         /// </remarks>
-        protected virtual void OnSessionStarted()
-        {
-            SessionStarted?.Invoke(this, EventArgs.Empty);
+        protected virtual void OnSessionStarted () {
+            SessionStarted?.Invoke (this, EventArgs.Empty);
         }
 
         /// <summary>
@@ -515,9 +464,8 @@ namespace Microsoft.Azure.SpatialAnchors.Unity
         /// <see cref="StopSession"/> methods rather than calling methods
         /// directly on the <see cref="Session"/> instance.
         /// </remarks>
-        protected virtual void OnSessionStopped()
-        {
-            SessionStopped?.Invoke(this, EventArgs.Empty);
+        protected virtual void OnSessionStopped () {
+            SessionStopped?.Invoke (this, EventArgs.Empty);
         }
 
         /// <summary>
@@ -529,27 +477,25 @@ namespace Microsoft.Azure.SpatialAnchors.Unity
         /// <param name="args">
         /// The event data.
         /// </param>
-        protected virtual void OnSessionUpdated(object sender, SessionUpdatedEventArgs args)
-        {
+        protected virtual void OnSessionUpdated (object sender, SessionUpdatedEventArgs args) {
             // Update the cached session status
             sessionStatus = args.Status;
 
             // Raise the event
-            SessionUpdated?.Invoke(this, args);
+            SessionUpdated?.Invoke (this, args);
         }
         #endregion // Overridables
 
         #region Event Handlers
-        private async void Session_TokenRequired(object sender, TokenRequiredEventArgs args)
-        {
+        private async void Session_TokenRequired (object sender, TokenRequiredEventArgs args) {
             // Get the deferral
-            CloudSpatialAnchorSessionDeferral deferral = args.GetDeferral();
+            CloudSpatialAnchorSessionDeferral deferral = args.GetDeferral ();
 
             // Call overridable method to get the token and store it
-            args.AuthenticationToken = await GetAADTokenAsync();
+            args.AuthenticationToken = await GetAADTokenAsync ();
 
             // Complete the deferral
-            deferral.Complete();
+            deferral.Complete ();
         }
 
 #if UNITY_ANDROID || UNITY_IOS
@@ -559,43 +505,33 @@ namespace Microsoft.Azure.SpatialAnchors.Unity
         /// to Unity ARFoundation Reference Points.
         /// </summary>
         /// <param name="obj">Event args with information about what has changed.</param>
-        private void ARReferencePointManager_referencePointsChanged(ARReferencePointsChangedEventArgs obj)
-        {
-            lock (pointerToReferencePoints)
-            {
-                foreach (ARReferencePoint aRReferencePoint in obj.added)
-                {
-                    string lookupkey = aRReferencePoint.nativePtr.GetPlatformPointer().GetPlatformKey();
-                    if (!pointerToReferencePoints.ContainsKey(lookupkey))
-                    {
-                        pointerToReferencePoints.Add(lookupkey, aRReferencePoint);
+        private void ARReferencePointManager_referencePointsChanged (ARReferencePointsChangedEventArgs obj) {
+            lock (pointerToReferencePoints) {
+                foreach (ARReferencePoint aRReferencePoint in obj.added) {
+                    string lookupkey = aRReferencePoint.nativePtr.GetPlatformPointer ().GetPlatformKey ();
+                    if (!pointerToReferencePoints.ContainsKey (lookupkey)) {
+                        pointerToReferencePoints.Add (lookupkey, aRReferencePoint);
                     }
                 }
 
-                foreach (ARReferencePoint aRReferencePoint in obj.removed)
-                {
+                foreach (ARReferencePoint aRReferencePoint in obj.removed) {
                     string toremove = null;
-                    foreach (var kvp in pointerToReferencePoints)
-                    {
-                        if (kvp.Value == aRReferencePoint)
-                        {
+                    foreach (var kvp in pointerToReferencePoints) {
+                        if (kvp.Value == aRReferencePoint) {
                             toremove = kvp.Key;
                             break;
                         }
                     }
 
-                    if (toremove != null)
-                    {
-                        pointerToReferencePoints.Remove(toremove);
+                    if (toremove != null) {
+                        pointerToReferencePoints.Remove (toremove);
                     }
                 }
 
-                foreach (ARReferencePoint aRReferencePoint in obj.updated)
-                {
-                    string lookupKey = aRReferencePoint.nativePtr.GetPlatformPointer().GetPlatformKey();
-                    if (!pointerToReferencePoints.ContainsKey(lookupKey))
-                    {
-                        pointerToReferencePoints.Add(lookupKey, aRReferencePoint);
+                foreach (ARReferencePoint aRReferencePoint in obj.updated) {
+                    string lookupKey = aRReferencePoint.nativePtr.GetPlatformPointer ().GetPlatformKey ();
+                    if (!pointerToReferencePoints.ContainsKey (lookupKey)) {
+                        pointerToReferencePoints.Add (lookupKey, aRReferencePoint);
                     }
                 }
             }
@@ -605,9 +541,8 @@ namespace Microsoft.Azure.SpatialAnchors.Unity
         /// Called by ARFoundation to indicate that there is a new frame to process
         /// </summary>
         /// <param name="obj">Information about the frame.  Not used.</param>
-        private void ArCameraManager_frameReceived(ARCameraFrameEventArgs obj)
-        {
-            ProcessLatestFrame();
+        private void ArCameraManager_frameReceived (ARCameraFrameEventArgs obj) {
+            ProcessLatestFrame ();
         }
 #endif
         #endregion // Event Handlers
@@ -616,53 +551,64 @@ namespace Microsoft.Azure.SpatialAnchors.Unity
         /// <summary>
         /// Awake is called when the script instance is being loaded.
         /// </summary>
-        protected virtual void Awake()
-        {
-            LoadConfiguration();
+        protected virtual void Awake () {
+            LoadConfiguration ();
         }
 
         /// <summary>
         /// OnDestroy is called when the behavior is destroyed. Can occur when
         /// the scene or application ends.
         /// </summary>
-        protected virtual void OnDestroy()
-        {
-            DestroySession();
+        protected virtual void OnDestroy () {
+            DestroySession ();
         }
 
         /// <summary>
         /// Start is called before the first frame update.
         /// </summary>
-        protected async virtual void Start()
-        {
+        protected async virtual void Start () {
 #if UNITY_ANDROID || UNITY_IOS
             mainCamera = Camera.main;
-            arCameraManager = FindObjectOfType<ARCameraManager>();
-            arSession = FindObjectOfType<ARSession>();
-            Debug.Log("arSession: "+ arSession);
-            arReferencePointManager = FindObjectOfType<ARReferencePointManager>();
+            arCameraManager = FindObjectOfType<ARCameraManager> ();
+            arSession = FindObjectOfType<ARSession> ();
+            aRSessionOrigin = FindObjectOfType<ARSessionOrigin> ();
+
+            //pointCloudManager = FindObjectOfType<ARPointCloudManager>();
+            Debug.Log ("arSession: " + arSession);
+            arReferencePointManager = FindObjectOfType<ARReferencePointManager> ();
 #endif    
 
             // Only allow the manager to start if it is properly configured.
-            await EnsureValidConfiguration(disable: true, exception: false);
+            await EnsureValidConfiguration (disable: true, exception: false);
 
 #if UNITY_ANDROID || UNITY_IOS
             arReferencePointManager.referencePointsChanged += ARReferencePointManager_referencePointsChanged;
 #endif
         }
-        
+
+        /*public int GetPointCloudLength() {
+            return pointCloudManager.pointCloudPrefab.GetComponent<ARPointCloud>().identifiers.Length;
+        }*/
+
         /// <summary>
         /// Update is called once per frame
         /// </summary>
-        protected virtual void Update()
-        {
+        protected virtual void Update () {
 #if UNITY_ANDROID || UNITY_IOS
-            ProcessPendingEventArgs();
+            ProcessPendingEventArgs ();
+
+            if (pointCloud == null) {
+                pointCloud = aRSessionOrigin.trackablesParent.GetComponentInChildren<ARPointCloud> ();
+            } else {
+                if (pointCloud.positions.IsCreated) {
+                    featurePoints = new List<Vector3> (pointCloud.positions);
+                }
+            }
 #endif
         }
-#endregion // Unity Overrides
+        #endregion // Unity Overrides
 
-#region Public Methods
+        #region Public Methods
         /// <summary>
         /// Creates a new session if one does not exist.
         /// </summary>
@@ -670,44 +616,40 @@ namespace Microsoft.Azure.SpatialAnchors.Unity
         /// A <see cref="Task"/> that represents the operation.
         /// </returns>
 #pragma warning disable CS1998 // Conditional compile statements are removing await
-        public async Task CreateSessionAsync()
+        public async Task CreateSessionAsync ()
 #pragma warning restore CS1998
         {
             // Warn if already created
-            if (session != null)
-            {
-                Debug.LogWarning($"{nameof(CreateSessionAsync)} called but session is already created.");
+            if (session != null) {
+                Debug.LogWarning ($"{nameof(CreateSessionAsync)} called but session is already created.");
                 return;
             }
 
             // Only allow a session to be created the manager is properly configured.
-            await EnsureValidConfiguration(disable: false, exception: true);
+            await EnsureValidConfiguration (disable: false, exception: true);
 
 #if UNITY_ANDROID // Android Only
             // We should only run the Java initialization once
-            if (!javaInitialized)
-            {
+            if (!javaInitialized) {
                 // Create a TaskCompletionSource that we can use to know when
                 // the Java plugin has completed initialization on the Android
                 // thread.
-                TaskCompletionSource<bool> pluginInit = new TaskCompletionSource<bool>();
+                TaskCompletionSource<bool> pluginInit = new TaskCompletionSource<bool> ();
 
                 // Make sure ARCore is running. This code must be executed
                 // on a Java thread provided by Android.
-                AndroidHelper.Instance.DispatchUiThread(unityActivity =>
-                {
+                AndroidHelper.Instance.DispatchUiThread (unityActivity => {
                     // Create the plugin
-                    using (AndroidJavaClass cloudServices = new AndroidJavaClass("com.microsoft.CloudServices"))
-                    {
+                    using (AndroidJavaClass cloudServices = new AndroidJavaClass ("com.microsoft.CloudServices")) {
                         // Initialize the plugin
-                        cloudServices.CallStatic("initialize", unityActivity);
+                        cloudServices.CallStatic ("initialize", unityActivity);
 
                         // Update static variable to say that the plugin has been initialized
                         javaInitialized = true;
 
                         // Set the task completion source so the CreateSession method can
                         // continue back on the Unity thread.
-                        pluginInit.SetResult(true);
+                        pluginInit.SetResult (true);
                     }
                 });
 
@@ -723,20 +665,17 @@ namespace Microsoft.Azure.SpatialAnchors.Unity
 #endif
 
             // Create the session instance
-            session = new CloudSpatialAnchorSession();
+            session = new CloudSpatialAnchorSession ();
 
             // Configure logging
             session.LogLevel = logLevel;
-           
+
             // Configure authentication
-            if (authenticationMode == AuthenticationMode.ApiKey)
-            {
+            if (authenticationMode == AuthenticationMode.ApiKey) {
                 // API Key mode just applies credentials directly
-                session.Configuration.AccountId = spatialAnchorsAccountId.Trim();
-                session.Configuration.AccountKey = spatialAnchorsAccountKey.Trim();
-            }
-            else
-            {
+                session.Configuration.AccountId = spatialAnchorsAccountId.Trim ();
+                session.Configuration.AccountKey = spatialAnchorsAccountKey.Trim ();
+            } else {
                 // AAD mode requires an auth token workflow
                 session.TokenRequired += Session_TokenRequired;
             }
@@ -749,35 +688,33 @@ namespace Microsoft.Azure.SpatialAnchors.Unity
             session.Error += OnError;
 
 #if UNITY_ANDROID || UNITY_IOS
-            session.Session = arSession.subsystem.nativePtr.GetPlatformPointer();
+            session.Session = arSession.subsystem.nativePtr.GetPlatformPointer ();
 #elif UNITY_WSA || WINDOWS_UWP
             // No need to set a native session pointer for HoloLens.
 #else
-            throw new NotSupportedException("The platform is not supported.");
+            throw new NotSupportedException ("The platform is not supported.");
 #endif
         }
 
         /// <summary>
         /// Destroys any existing session and unsubscribes from all events.
         /// </summary>
-        public void DestroySession()
-        {
+        public void DestroySession () {
             // Warn if already destroyed
-            if (session == null)
-            {
-                Debug.LogWarning($"{nameof(DestroySession)} called but no session exists.");
+            if (session == null) {
+                Debug.LogWarning ($"{nameof(DestroySession)} called but no session exists.");
                 return;
             }
 
 #if UNITY_ANDROID || UNITY_IOS
             // Forget about cached ARFoundation reference points
-            pointerToReferencePoints.Clear();
+            pointerToReferencePoints.Clear ();
 
             // Stop getting frames
             arCameraManager.frameReceived -= ArCameraManager_frameReceived;
 #endif
             // Make sure the session is stopped
-            if (isSessionStarted) { StopSession(); }
+            if (isSessionStarted) { StopSession (); }
 
             // Unsubscribe from session events
             session.OnLogDebug -= OnLogDebug;
@@ -787,7 +724,7 @@ namespace Microsoft.Azure.SpatialAnchors.Unity
             session.Error -= OnError;
 
             // Dispose the session
-            session.Dispose();
+            session.Dispose ();
 
             // Update session variable and raise notification through property setter
             Session = null; // Use property to raise event
@@ -804,28 +741,25 @@ namespace Microsoft.Azure.SpatialAnchors.Unity
         /// <returns>
         /// A <see cref="Task"/> that represents the operation.
         /// </returns>
-        public async Task ResetSessionAsync()
-        {
+        public async Task ResetSessionAsync () {
             // Capture if session was started
             bool wasStarted = isSessionStarted;
 
             // Stop the session if it was started
-            if (isSessionStarted) { StopSession(); }
+            if (isSessionStarted) { StopSession (); }
 
             // Reset the current session if there is one
-            if (session != null) { session.Reset(); }
+            if (session != null) { session.Reset (); }
 
             // Wait for any currently active locate operations to be stopped
-            await Task.Run(async () =>
-            {
-                while (IsLocating)
-                {
-                    await Task.Delay(20);
+            await Task.Run (async () => {
+                while (IsLocating) {
+                    await Task.Delay (20);
                 }
             });
 
             // Restart the session if it was running before the reset
-            if (wasStarted) { await StartSessionAsync(); }
+            if (wasStarted) { await StartSessionAsync (); }
         }
 
         /// <summary>
@@ -847,21 +781,19 @@ namespace Microsoft.Azure.SpatialAnchors.Unity
         /// before continuing the operation. The <paramref name="cancellationToken"/>
         /// parameter can be used to cancel the operation.
         /// </remarks>
-        public async Task CreateAnchorAsync(CloudSpatialAnchor anchor, CancellationToken cancellationToken)
-        {
+        public async Task CreateAnchorAsync (CloudSpatialAnchor anchor, CancellationToken cancellationToken) {
             // Validate
-            if (anchor == null) throw new ArgumentNullException(nameof(anchor));
-            EnsureSessionStarted();
+            if (anchor == null) throw new ArgumentNullException (nameof (anchor));
+            EnsureSessionStarted ();
 
             // Wait for enough data
-            while (!IsReadyForCreate)
-            {
-                cancellationToken.ThrowIfCancellationRequested();
-                await Task.Delay(50);
+            while (!IsReadyForCreate) {
+                cancellationToken.ThrowIfCancellationRequested ();
+                await Task.Delay (50);
             }
 
             // Actually create
-            await session.CreateAnchorAsync(anchor);
+            await session.CreateAnchorAsync (anchor);
         }
 
         /// <summary>
@@ -881,9 +813,8 @@ namespace Microsoft.Azure.SpatialAnchors.Unity
         /// there is an override of this method which accepts a
         /// <see cref="CancellationToken"/>.
         /// </remarks>
-        public Task CreateAnchorAsync(CloudSpatialAnchor anchor)
-        {
-            return CreateAnchorAsync(anchor, CancellationToken.None);
+        public Task CreateAnchorAsync (CloudSpatialAnchor anchor) {
+            return CreateAnchorAsync (anchor, CancellationToken.None);
         }
 
         /// <summary>
@@ -899,14 +830,13 @@ namespace Microsoft.Azure.SpatialAnchors.Unity
         /// If there is no active <see cref="Session"/>, calling this method
         /// will result in an exception.
         /// </remarks>
-        public async Task DeleteAnchorAsync(CloudSpatialAnchor anchor)
-        {
+        public async Task DeleteAnchorAsync (CloudSpatialAnchor anchor) {
             // Validate
-            if (anchor == null) throw new ArgumentNullException(nameof(anchor));
-            EnsureSessionStarted();
+            if (anchor == null) throw new ArgumentNullException (nameof (anchor));
+            EnsureSessionStarted ();
 
             // Actually delete
-            await session.DeleteAnchorAsync(anchor);
+            await session.DeleteAnchorAsync (anchor);
         }
 
         /// <summary>
@@ -918,33 +848,30 @@ namespace Microsoft.Azure.SpatialAnchors.Unity
         /// <see cref="StopSession"/> methods rather than calling methods
         /// directly on the <see cref="Session"/> instance.
         /// </remarks>
-        public async Task StartSessionAsync()
-        {
+        public async Task StartSessionAsync () {
             // Warn if already started
-            if (isSessionStarted)
-            {
-                Debug.LogWarning($"{nameof(StartSessionAsync)} called but session is already started.");
+            if (isSessionStarted) {
+                Debug.LogWarning ($"{nameof(StartSessionAsync)} called but session is already started.");
                 return;
             }
 
             // If no session created, create one
-            if (session == null)
-            {
-                Debug.Log($"{nameof(StartSessionAsync)} called with but no session. Creating one.");
-                await CreateSessionAsync();
+            if (session == null) {
+                Debug.Log ($"{nameof(StartSessionAsync)} called with but no session. Creating one.");
+                await CreateSessionAsync ();
             }
 
             // Start the session
-            session.Start();
-            
+            session.Start ();
+
             // It's started
             isSessionStarted = true;
 
             // Wait for first session update
-            sessionStatus = await session.GetSessionStatusAsync();
+            sessionStatus = await session.GetSessionStatusAsync ();
 
             // Notify
-            OnSessionStarted();
+            OnSessionStarted ();
         }
 
         /// <summary>
@@ -957,24 +884,21 @@ namespace Microsoft.Azure.SpatialAnchors.Unity
         /// <see cref="StopSession"/> methods rather than calling methods
         /// directly on the <see cref="Session"/> instance.
         /// </remarks>
-        public void StopSession()
-        {
+        public void StopSession () {
             // Warn if already started
-            if (!isSessionStarted)
-            {
-                Debug.LogWarning($"{nameof(StopSession)} called but no session has been started.");
+            if (!isSessionStarted) {
+                Debug.LogWarning ($"{nameof(StopSession)} called but no session has been started.");
                 return;
             }
 
             // If no session created, create one
-            if (session == null)
-            {
-                Debug.LogWarning($"{nameof(StopSession)} called but no session has been created.");
+            if (session == null) {
+                Debug.LogWarning ($"{nameof(StopSession)} called but no session has been created.");
                 return;
             }
 
             // Stop the session
-            session.Stop();
+            session.Stop ();
 
             // Status is no longer valid
             sessionStatus = null;
@@ -983,11 +907,11 @@ namespace Microsoft.Azure.SpatialAnchors.Unity
             isSessionStarted = false;
 
             // Notify
-            OnSessionStopped();
+            OnSessionStopped ();
         }
-#endregion // Public Methods
+        #endregion // Public Methods
 
-#region Public Properties
+        #region Public Properties
         /// <summary>
         /// Gets or sets the method used for authentication.
         /// The default is <see cref="AuthenticationMode.ApiKey">ApiKey</see>.
@@ -1003,11 +927,9 @@ namespace Microsoft.Azure.SpatialAnchors.Unity
         /// Gets a value that indicates if the manager is currently attempting
         /// to locate any anchors.
         /// </summary>
-        public bool IsLocating
-        {
-            get
-            {
-                return ((session != null) && (session.GetActiveWatchers().Count > 0));
+        public bool IsLocating {
+            get {
+                return ((session != null) && (session.GetActiveWatchers ().Count > 0));
             }
         }
 
@@ -1021,10 +943,8 @@ namespace Microsoft.Azure.SpatialAnchors.Unity
         /// the <see cref="SessionStatus"/>.<see cref="SessionStatus.ReadyForCreateProgress">ReadyForCreateProgress</see>
         /// property.
         /// </remarks>
-        public bool IsReadyForCreate
-        {
-            get
-            {
+        public bool IsReadyForCreate {
+            get {
                 return ((sessionStatus != null) && (sessionStatus.RecommendedForCreateProgress >= 1));
             }
         }
@@ -1043,14 +963,11 @@ namespace Microsoft.Azure.SpatialAnchors.Unity
         /// <summary>
         /// Gets or sets the log level for messages from the Spatial Anchors service.
         /// </summary>
-        public SessionLogLevel LogLevel
-        {
-            get
-            {
+        public SessionLogLevel LogLevel {
+            get {
                 return logLevel;
             }
-            set
-            {
+            set {
                 logLevel = value;
                 if (session != null) { session.LogLevel = value; }
             }
@@ -1060,18 +977,14 @@ namespace Microsoft.Azure.SpatialAnchors.Unity
         /// Gets the current <see cref="CloudSpatialAnchorSession"/> if one
         /// has been created.
         /// </summary>
-        public CloudSpatialAnchorSession Session
-        {
-            get
-            {
+        public CloudSpatialAnchorSession Session {
+            get {
                 return session;
             }
-            private set
-            {
-                if (session != value)
-                {
+            private set {
+                if (session != value) {
                     session = value;
-                    OnSessionChanged();
+                    OnSessionChanged ();
                 }
             }
         }
@@ -1100,9 +1013,12 @@ namespace Microsoft.Azure.SpatialAnchors.Unity
         /// Gets or sets the Tenant ID to use when authenticating via Azure Active Directory.
         /// </summary>
         public string TenantId { get { return tenantId; } set { tenantId = value; } }
-#endregion // Public Properties
 
-#region Public Events
+        public ARPointCloud PointCloud { get { return pointCloud; } set { pointCloud = value; } }
+        public List<Vector3> FeaturePoints { get { return featurePoints; } set { featurePoints = value; } }
+        #endregion // Public Properties
+
+        #region Public Events
         /// <summary>
         /// Raised when the <see cref="Session"/> <see cref="CloudSpatialAnchorSession.AnchorLocated">AnchorLocated</see> event is fired.
         /// </summary>
@@ -1203,6 +1119,6 @@ namespace Microsoft.Azure.SpatialAnchors.Unity
         /// the currently active session.
         /// </remarks>
         public event OnLogDebugDelegate LogDebug;
-#endregion // Public Events
+        #endregion // Public Events
     }
 }

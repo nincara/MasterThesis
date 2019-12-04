@@ -113,6 +113,8 @@ namespace Microsoft.Azure.SpatialAnchors.Unity {
         {
             // Return to the launcher scene
             SceneManager.LoadScene (0);
+            
+            CloudManager.DestroySession();
         }
 
         /// <summary>
@@ -123,12 +125,6 @@ namespace Microsoft.Azure.SpatialAnchors.Unity {
                 Destroy (spawnedObject);
                 spawnedObject = null;
             }
-
-            if (spawnedObjectMat != null) {
-                Destroy (spawnedObjectMat);
-                spawnedObjectMat = null;
-            }
-
         }
 
         protected CloudSpatialAnchorWatcher CreateWatcher () {

@@ -45,7 +45,7 @@ namespace Microsoft.Azure.SpatialAnchors.Unity {
          return result;
      }
 
-        public void SaveData(GameObject dataObject, int seconds) {
+        public void SaveData(GameObject dataObject, int seconds, float progress) {
             AnchorData data = dataObject.GetComponent<AnchorData>();
 
             JSONObject dataJson = new JSONObject();
@@ -56,6 +56,7 @@ namespace Microsoft.Azure.SpatialAnchors.Unity {
             dataJson.Add("Seconds", seconds);
             dataJson.Add("Progress", data.AnchorProgress);
             dataJson.Add("Key", data.AnchorKey);
+            dataJson.Add("LookingProgress", progress);
 
             positionVector = StringToVector3(data.AnchorPosition);
             rotationVector = StringToVector3(data.AnchorRotation);
