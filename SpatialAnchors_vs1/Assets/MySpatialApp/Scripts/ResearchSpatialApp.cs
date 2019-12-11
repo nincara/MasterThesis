@@ -120,15 +120,22 @@ namespace Microsoft.Azure.SpatialAnchors.Unity {
             feedbackBox.text += "AnchorData Abrufen - Name " + data.AnchorName + ". ";
 
             if (data.AnchorName != null) {
-                uiHandler.nameOutput.text = obj.GetComponent<AnchorData> ().AnchorName;
-                uiHandler.idOutput.text = obj.GetComponent<AnchorData> ().AnchorId;
-                uiHandler.infoInput.text = obj.GetComponent<AnchorData> ().AnchorInfo;
+
+                uiHandler.nameOutput.text = data.AnchorName;
+                uiHandler.idOutput.text = data.AnchorId;
+                uiHandler.infoInput.text = data.AnchorInfo;
                 uiHandler.secondsOutput.text = elapsedSeconds.ToString ();
-                uiHandler.dateOutput.text = obj.GetComponent<AnchorData> ().AnchorDate;
-                uiHandler.progressOutput.text = obj.GetComponent<AnchorData> ().AnchorProgress;
-                uiHandler.keyOutput.text = obj.GetComponent<AnchorData> ().AnchorKey;
-                uiHandler.positionOutput.text = obj.GetComponent<AnchorData> ().AnchorPosition;
-                uiHandler.rotationOutput.text = obj.GetComponent<AnchorData> ().AnchorRotation;
+                uiHandler.dateOutput.text = data.AnchorDate;
+                uiHandler.progressOutput.text = data.AnchorProgress;
+                uiHandler.keyOutput.text = data.AnchorKey;
+                uiHandler.positionOutput.text = data.AnchorPosition;
+                uiHandler.rotationOutput.text = data.AnchorRotation;
+
+                SaveDataToJson saveObject = new SaveDataToJson();
+                float progressLooking = CloudManager.SessionStatus.RecommendedForCreateProgress;
+                saveObject.SaveData(obj, elapsedSeconds.ToString(), progressLooking);
+                feedbackBox.text += "Data saved. ";
+                
             } else {
                 feedbackBox.text += "Daten wurden nicht gespeichert.";
             }

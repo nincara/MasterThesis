@@ -1,8 +1,8 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
-using UnityEngine;
 using System.IO;
 using SimpleJSON;
+using UnityEngine;
 
 namespace Microsoft.Azure.SpatialAnchors.Unity {
     public class SaveDataToJson : MonoBehaviour {
@@ -26,56 +26,57 @@ namespace Microsoft.Azure.SpatialAnchors.Unity {
 
         }
 
-        public static Vector3 StringToVector3(string sVector)
-     {
-         // Remove the parentheses
-         if (sVector.StartsWith ("(") && sVector.EndsWith (")")) {
-             sVector = sVector.Substring(1, sVector.Length-2);
-         }
- 
-         // split the items
-         string[] sArray = sVector.Split(',');
- 
-         // store as a Vector3
-         Vector3 result = new Vector3(
-             float.Parse(sArray[0]),
-             float.Parse(sArray[1]),
-             float.Parse(sArray[2]));
- 
-         return result;
-     }
+        public static Vector3 StringToVector3 (string sVector) {
+            // Remove the parentheses
+            if (sVector.StartsWith ("(") && sVector.EndsWith (")")) {
+                sVector = sVector.Substring (1, sVector.Length - 2);
+            }
 
-        public void SaveData(GameObject dataObject, int seconds, float progress) {
-            AnchorData data = dataObject.GetComponent<AnchorData>();
+            // split the items
+            string[] sArray = sVector.Split (',');
 
-            JSONObject dataJson = new JSONObject();
-            dataJson.Add("Name", data.AnchorName);
-            dataJson.Add("ID", data.AnchorDescription);
-            dataJson.Add("Date", data.AnchorDate);
-            dataJson.Add("Info", data.AnchorInfo);
-            dataJson.Add("Seconds", seconds);
-            dataJson.Add("Progress", data.AnchorProgress);
-            dataJson.Add("Key", data.AnchorKey);
-            dataJson.Add("LookingProgress", progress);
+            // store as a Vector3
+            Vector3 result = new Vector3 (
+                float.Parse (sArray[0]),
+                float.Parse (sArray[1]),
+                float.Parse (sArray[2]));
 
-            positionVector = StringToVector3(data.AnchorPosition);
-            rotationVector = StringToVector3(data.AnchorRotation);
+            return result;
+        }
 
-            JSONArray position = new JSONArray();
-            position.Add(positionVector.x);
-            position.Add(positionVector.y);
-            position.Add(positionVector.z);
+        public void SaveData (GameObject dataObject, string seconds, float progress) {
+            AnchorData data = dataObject.GetComponent<AnchorData> ();
 
-            JSONArray rotation = new JSONArray();
-            rotation.Add(rotationVector.x);
-            rotation.Add(rotationVector.y);
-            rotation.Add(rotationVector.z);
+            JSONObject dataJson = new JSONObject ();
+            dataJson.Add ("Name", data.AnchorName);
+            dataJson.Add ("ID", data.AnchorId);
+            dataJson.Add ("Date", data.AnchorDate);
+            dataJson.Add ("Info", data.AnchorInfo);
+            dataJson.Add ("Seconds", seconds);
+            dataJson.Add ("Progress", data.AnchorProgress);
+            dataJson.Add ("Key", data.AnchorKey);
+            dataJson.Add ("LookingProgress", progress);
 
-            dataJson.Add("Position", position);
-            dataJson.Add("Rotation", rotation);
+            positionVector = StringToVector3 (data.AnchorPosition);
+            rotationVector = StringToVector3 (data.AnchorRotation);
 
-            string path = Application.persistentDataPath + "/DataSave.json";
-            File.WriteAllText(path, dataJson.ToString());
+            JSONArray position = new JSONArray ();
+            position.Add (positionVector.x);
+            position.Add (positionVector.y);
+            position.Add (positionVector.z);
+
+            JSONArray rotation = new JSONArray ();
+            rotation.Add (rotationVector.x);
+            rotation.Add (rotationVector.y);
+            rotation.Add (rotationVector.z);
+
+            dataJson.Add ("Position", position);
+            dataJson.Add ("Rotation", rotation);
+
+            string date = System.DateTime.Now.ToString("'yyyy’-‘MM’-‘dd’_’HH’-’mm’-’ss");
+
+            string path = Application.persistentDataPath + "/DataSave" + data.AnchorId + "_" + date + ".json";
+            File.WriteAllText (path, dataJson.ToString ());
         }
     }
 }
