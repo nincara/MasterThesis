@@ -334,6 +334,7 @@ namespace Microsoft.Azure.SpatialAnchors.Unity {
 
         public void EnoughCollected () {
             enoughCollected = true;
+            
         }
 
         /// <summary>

@@ -7,24 +7,7 @@ using UnityEngine;
 namespace Microsoft.Azure.SpatialAnchors.Unity {
     public class SaveDataToJson : MonoBehaviour {
 
-        public string _name;
-        public string _id;
-        public string _date;
-        public string _info;
-        public int _seconds;
-        public float _progress;
-        public string _key;
         public Vector3 positionVector, rotationVector;
-
-        // Start is called before the first frame update
-        void Start () {
-
-        }
-
-        // Update is called once per frame
-        void Update () {
-
-        }
 
         public static Vector3 StringToVector3 (string sVector) {
             // Remove the parentheses
@@ -44,7 +27,7 @@ namespace Microsoft.Azure.SpatialAnchors.Unity {
             return result;
         }
 
-        public void SaveData (GameObject dataObject, string seconds, float progress) {
+        public void SaveData (GameObject dataObject, string seconds, string progress) {
             AnchorData data = dataObject.GetComponent<AnchorData> ();
 
             JSONObject dataJson = new JSONObject ();
@@ -73,7 +56,7 @@ namespace Microsoft.Azure.SpatialAnchors.Unity {
             dataJson.Add ("Position", position);
             dataJson.Add ("Rotation", rotation);
 
-            string date = System.DateTime.Now.ToString("'yyyy’-‘MM’-‘dd’_’HH’-’mm’-’ss");
+            string date = System.DateTime.Now.ToString("yyyy'-'MM'-'dd'_'HH'-'mm'-'ss");
 
             string path = Application.persistentDataPath + "/DataSave" + data.AnchorId + "_" + date + ".json";
             File.WriteAllText (path, dataJson.ToString ());

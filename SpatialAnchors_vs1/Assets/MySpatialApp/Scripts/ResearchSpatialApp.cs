@@ -133,7 +133,7 @@ namespace Microsoft.Azure.SpatialAnchors.Unity {
 
                 SaveDataToJson saveObject = new SaveDataToJson();
                 float progressLooking = CloudManager.SessionStatus.RecommendedForCreateProgress;
-                saveObject.SaveData(obj, elapsedSeconds.ToString(), progressLooking);
+                saveObject.SaveData(obj, elapsedSeconds.ToString(), progressLooking.ToString());
                 feedbackBox.text += "Data saved. ";
                 
             } else {
@@ -316,26 +316,6 @@ namespace Microsoft.Azure.SpatialAnchors.Unity {
 
             currentAnchorId = string.Empty;
         }
-
-        /*protected override void OnCloudAnchorLocated(AnchorLocatedEventArgs args)
-        {
-            base.OnCloudAnchorLocated(args);
-
-            if (currentAppState == AppState.LookingForAnchor) //  && !_spawnedObjectsWithIds.ContainsKey(args.Anchor.Identifier)
-            {
-                feedbackBox.text += "Anker gefunden.";
-
-                if (args.Status == LocateAnchorStatus.Located)
-                {
-                    currentCloudAnchor = args.Anchor;
-                    feedbackBox.text += "Identifier: " + currentCloudAnchor.Identifier + ". ";
-                    _allAnchors.Add(currentCloudAnchor); // Save Anchor in List
-                    anchorsLocated++;
-                }
-
-                feedbackBox.text = "You located " + anchorsLocated + "/" + anchorList.Count + " Anchor(s). Press Show to see where they are.";
-            }
-        }*/
 
         protected override void OnCloudAnchorLocated (AnchorLocatedEventArgs args) {
             base.OnCloudAnchorLocated (args);
