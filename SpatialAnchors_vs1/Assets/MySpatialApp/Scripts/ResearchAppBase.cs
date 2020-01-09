@@ -1,7 +1,9 @@
 ﻿// Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT license.
 using System;
+using System.Collections;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.SceneManagement;
@@ -20,6 +22,9 @@ namespace Microsoft.Azure.SpatialAnchors.Unity {
         protected CloudSpatialAnchorWatcher currentWatcher;
         protected GameObject spawnedObject = null;
         protected bool enoughCollected = false;
+
+        //Messung
+        private Stopwatch stopwatchTimer = new Stopwatch ();
 
         #endregion // Member Variables
 
@@ -72,13 +77,13 @@ namespace Microsoft.Azure.SpatialAnchors.Unity {
             speechBubbleText = GameObject.Find ("InfoSpeechBubble_Text").GetComponent<Text> ();
 
             if (feedbackBox == null) {
-                Debug.Log ($"{nameof(feedbackBox)} not found in scene by XRUXPicker.");
+                UnityEngine.Debug.Log ($"{nameof(feedbackBox)} not found in scene by XRUXPicker.");
                 Destroy (this);
                 return;
             }
 
             if (CloudManager == null) {
-                Debug.Break ();
+                UnityEngine.Debug.Break ();
                 feedbackBox.text = $"{nameof(CloudManager)} reference has not been set. Make sure it has been added to the scene and wired up to {this.name}.";
                 return;
             }
@@ -196,7 +201,7 @@ namespace Microsoft.Azure.SpatialAnchors.Unity {
 
             // Warn and exit if the behavior is missing
             if (cna == null) {
-                Debug.LogWarning ($"The object {objectToMove.name} is missing the {nameof(CloudNativeAnchor)} behavior.");
+                UnityEngine.Debug.LogWarning ($"The object {objectToMove.name} is missing the {nameof(CloudNativeAnchor)} behavior.");
                 return;
             }
 
@@ -227,7 +232,7 @@ namespace Microsoft.Azure.SpatialAnchors.Unity {
         /// </summary>
         /// <param name="args">The <see cref="LocateAnchorsCompletedEventArgs"/> instance containing the event data.</param>
         protected virtual void OnCloudLocateAnchorsCompleted (LocateAnchorsCompletedEventArgs args) {
-            Debug.Log ("Locate pass complete");
+            UnityEngine.Debug.Log ("Locate pass complete");
         }
 
         /// <summary>
@@ -244,8 +249,8 @@ namespace Microsoft.Azure.SpatialAnchors.Unity {
         protected virtual void OnSaveCloudAnchorFailed (Exception exception) {
             // we will block the next step to show the exception message in the UI.
             isErrorActive = true;
-            Debug.LogException (exception);
-            Debug.Log ("Failed to save anchor " + exception.ToString ());
+            UnityEngine.Debug.LogException (exception);
+            UnityEngine.Debug.Log ("Failed to save anchor " + exception.ToString ());
 
             UnityDispatcher.InvokeOnAppThread (() => this.feedbackBox.text = string.Format ("Error: {0}", exception.ToString ()));
         }
@@ -355,17 +360,26 @@ namespace Microsoft.Azure.SpatialAnchors.Unity {
             // Get the cloud portion of the anchor
             CloudSpatialAnchor cloudAnchor = cna.CloudAnchor;
 
-            //await CloudManager.UpdateAnchorPropertiesAsync(anchor);
-            // In this sample app we delete the cloud anchor explicitly, but here we show how to set an anchor to expire automatically
+            // Set a time after wich the anchor will expire automatically 
             cloudAnchor.Expiration = DateTimeOffset.Now.AddDays (7);
 
             float createProgress = 0.0f;
+            int maxFeaturePoints = 0;
+
+            stopwatchTimer.Start();
 
             while (!CollectCreateProgressData ()) {
                 await Task.Delay (330);
                 createProgress = CloudManager.SessionStatus.RecommendedForCreateProgress;
+                if (CloudManager.FeaturePoints.Count > maxFeaturePoints && CloudManager.FeaturePoints != null) 
+                {
+                    maxFeaturePoints = CloudManager.FeaturePoints.Count;
+                }
                 speechBubbleText.text = $"Move your device to capture more environment data: {createProgress:0%}";
             }
+
+            stopwatchTimer.Stop ();
+            float elapsedSeconds = stopwatchTimer.ElapsedMilliseconds;
 
             bool success = false;
 
@@ -383,11 +397,10 @@ namespace Microsoft.Azure.SpatialAnchors.Unity {
                 cloudAnchor.AppProperties.Add (@"progress", createProgress.ToString ());
                 cloudAnchor.AppProperties.Add (@"position", anchorPose.position.ToString ());
                 cloudAnchor.AppProperties.Add (@"rotation", anchorPose.rotation.ToString ());
+                cloudAnchor.AppProperties.Add (@"featurePoints", maxFeaturePoints.ToString());
+                cloudAnchor.AppProperties.Add (@"generateMilliseconds", elapsedSeconds.ToString());
 
                 // Actually save
-
-                feedbackBox.text += "Date: " + cloudAnchor.AppProperties[@"date"] + "Progress: " + cloudAnchor.AppProperties[@"progress"] + ". ";
-
                 await CloudManager.CreateAnchorAsync (cloudAnchor);
 
                 // Store
@@ -452,6 +465,8 @@ namespace Microsoft.Azure.SpatialAnchors.Unity {
                 data.AnchorProgress = cloudSpatialAnchor.AppProperties[@"progress"];
                 data.AnchorPosition = cloudSpatialAnchor.AppProperties[@"position"];
                 data.AnchorRotation = cloudSpatialAnchor.AppProperties[@"rotation"];
+                data.AnchorFeaturePoints = cloudSpatialAnchor.AppProperties[@"featurePoints"];
+                data.AnchorGenerateMilliseconds = cloudSpatialAnchor.AppProperties[@"generateMilliseconds"];
                 
                 data.AnchorPositionLocalization = worldPos.ToString();
                 data.AnchorRotationLocalization = worldRot.ToString();
@@ -493,7 +508,7 @@ namespace Microsoft.Azure.SpatialAnchors.Unity {
 
 #region Events
         private void CloudManager_AnchorLocated (object sender, AnchorLocatedEventArgs args) {
-            Debug.LogFormat ("Anchor recognized as a possible anchor {0} {1}", args.Identifier, args.Status);
+            UnityEngine.Debug.LogFormat ("Anchor recognized as a possible anchor {0} {1}", args.Identifier, args.Status);
             if (args.Status == LocateAnchorStatus.Located) {
                 OnCloudAnchorLocated (args);
             }
@@ -509,13 +524,13 @@ namespace Microsoft.Azure.SpatialAnchors.Unity {
 
         private void CloudManager_Error (object sender, SessionErrorEventArgs args) {
             isErrorActive = true;
-            Debug.Log (args.ErrorMessage);
+            UnityEngine.Debug.Log (args.ErrorMessage);
 
             UnityDispatcher.InvokeOnAppThread (() => this.feedbackBox.text = string.Format ("Error: {0}", args.ErrorMessage));
         }
 
         private void CloudManager_LogDebug (object sender, OnLogDebugEventArgs args) {
-            Debug.Log (args.Message);
+            UnityEngine.Debug.Log (args.Message);
         }
 
 #endregion Events

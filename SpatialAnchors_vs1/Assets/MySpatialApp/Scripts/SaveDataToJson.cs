@@ -36,11 +36,13 @@ namespace Microsoft.Azure.SpatialAnchors.Unity {
             dataJson.Add ("Key", data.AnchorKey);
             dataJson.Add ("Date", data.AnchorDate);
             dataJson.Add ("Info", data.AnchorInfo);
-            dataJson.Add ("Seconds", seconds);
+            dataJson.Add ("GenerateSeconds", data.AnchorGenerateMilliseconds);
+            dataJson.Add ("LocalizeSeconds", seconds);
             dataJson.Add ("Progress", data.AnchorProgress);
             dataJson.Add ("LookingProgress", progress);
-            dataJson.Add("FeaturePoints", maxFeaturePoints);
-
+            dataJson.Add("GenerateFeaturePoints", data.AnchorFeaturePoints);
+            dataJson.Add("LocalizeFeaturePoints", maxFeaturePoints);
+            
             positionVector = StringToVector3 (data.AnchorPosition);
             rotationVector = StringToVector3 (data.AnchorRotation);
 

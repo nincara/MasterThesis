@@ -53,8 +53,8 @@ namespace Microsoft.Azure.SpatialAnchors.Unity {
 
         // Messung
         private Stopwatch stopwatchTimer = new Stopwatch ();
-        private Int64 elapsedSeconds;
-        private int maxFeaturePoints;
+        private float elapsedSeconds;
+        private int maxFeaturePoints = 0;
 
 #endregion Variables
 
@@ -106,7 +106,7 @@ namespace Microsoft.Azure.SpatialAnchors.Unity {
                 speechBubbleText.text = $"Progress: {CloudManager.SessionStatus.RecommendedForCreateProgress:0%}. ";
             }
 
-            if (CloudManager.FeaturePoints.Count > maxFeaturePoints && CloudManager.FeaturePoints != null) 
+            if (CloudManager.FeaturePoints.Count > maxFeaturePoints && CloudManager.FeaturePoints != null && currentAppState == AppState.LookingForAnchor) 
             {
                 maxFeaturePoints = CloudManager.FeaturePoints.Count;
                 feedbackBox.text += "Max Feature Point: " + maxFeaturePoints + ". ";
