@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Threading.Tasks;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 
 namespace Microsoft.Azure.SpatialAnchors.Unity {
@@ -36,6 +37,7 @@ namespace Microsoft.Azure.SpatialAnchors.Unity {
         // Messung
         private Stopwatch stopwatchTimer = new Stopwatch ();
         private Int64 elapsedSeconds;
+        private int maxFeaturePoints;
 
         AppState currentAppState {
             get {
@@ -101,6 +103,12 @@ namespace Microsoft.Azure.SpatialAnchors.Unity {
                 speechBubbleText.text = $"Progress: {CloudManager.SessionStatus.RecommendedForCreateProgress:0%}. ";
             }
 
+            if (CloudManager.FeaturePoints.Count > maxFeaturePoints && CloudManager.FeaturePoints != null) 
+            {
+                maxFeaturePoints = CloudManager.FeaturePoints.Count;
+                feedbackBox.text += "Max Feature Point: " + maxFeaturePoints + ". ";
+            }
+
             base.Update ();
         }
 
@@ -131,9 +139,12 @@ namespace Microsoft.Azure.SpatialAnchors.Unity {
                 uiHandler.positionOutput.text = data.AnchorPosition;
                 uiHandler.rotationOutput.text = data.AnchorRotation;
 
+                feedbackBox.text = "Position: " + data.AnchorPositionLocalization + ", Rotation: " + data.AnchorRotationLocalization + ". ";
+
                 SaveDataToJson saveObject = new SaveDataToJson();
                 float progressLooking = CloudManager.SessionStatus.RecommendedForCreateProgress;
-                saveObject.SaveData(obj, elapsedSeconds.ToString(), progressLooking.ToString());
+
+                saveObject.SaveData(obj, elapsedSeconds.ToString(), progressLooking.ToString(), maxFeaturePoints);
                 feedbackBox.text += "Data saved. ";
                 
             } else {

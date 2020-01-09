@@ -7,7 +7,7 @@ using UnityEngine;
 namespace Microsoft.Azure.SpatialAnchors.Unity {
     public class SaveDataToJson : MonoBehaviour {
 
-        public Vector3 positionVector, rotationVector;
+        public Vector3 positionVector, rotationVector, positionVectorLocalize, rotationVectorLocalize;
 
         public static Vector3 StringToVector3 (string sVector) {
             // Remove the parentheses
@@ -27,18 +27,19 @@ namespace Microsoft.Azure.SpatialAnchors.Unity {
             return result;
         }
 
-        public void SaveData (GameObject dataObject, string seconds, string progress) {
+        public void SaveData (GameObject dataObject, string seconds, string progress, int maxFeaturePoints) {
             AnchorData data = dataObject.GetComponent<AnchorData> ();
 
             JSONObject dataJson = new JSONObject ();
             dataJson.Add ("Name", data.AnchorName);
             dataJson.Add ("ID", data.AnchorId);
+            dataJson.Add ("Key", data.AnchorKey);
             dataJson.Add ("Date", data.AnchorDate);
             dataJson.Add ("Info", data.AnchorInfo);
             dataJson.Add ("Seconds", seconds);
             dataJson.Add ("Progress", data.AnchorProgress);
-            dataJson.Add ("Key", data.AnchorKey);
             dataJson.Add ("LookingProgress", progress);
+            dataJson.Add("FeaturePoints", maxFeaturePoints);
 
             positionVector = StringToVector3 (data.AnchorPosition);
             rotationVector = StringToVector3 (data.AnchorRotation);
@@ -55,6 +56,22 @@ namespace Microsoft.Azure.SpatialAnchors.Unity {
 
             dataJson.Add ("Position", position);
             dataJson.Add ("Rotation", rotation);
+
+            positionVectorLocalize = StringToVector3(data.AnchorPositionLocalization);
+            rotationVectorLocalize = StringToVector3(data.AnchorRotationLocalization);
+
+            JSONArray localizePositionArray = new JSONArray ();
+            localizePositionArray.Add (positionVectorLocalize.x);
+            localizePositionArray.Add (positionVectorLocalize.y);
+            localizePositionArray.Add (positionVectorLocalize.z);
+
+            JSONArray localizeRotationArray = new JSONArray ();
+            localizeRotationArray.Add (rotationVectorLocalize.x);
+            localizeRotationArray.Add (rotationVectorLocalize.y);
+            localizeRotationArray.Add (rotationVectorLocalize.z);
+
+            dataJson.Add ("PositionLocalize", localizePositionArray);
+            dataJson.Add ("RotationLocalize", localizeRotationArray);
 
             string date = System.DateTime.Now.ToString("yyyy'-'MM'-'dd'_'HH'-'mm'-'ss");
 

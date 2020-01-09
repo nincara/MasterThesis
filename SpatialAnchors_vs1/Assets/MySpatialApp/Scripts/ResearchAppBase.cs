@@ -13,13 +13,11 @@ namespace Microsoft.Azure.SpatialAnchors.Unity {
         protected bool isErrorActive = false;
         protected Text feedbackBox, feedbackBoxExtra, speechBubbleText;
         protected string anchorName, anchorId, anchorInfo, anchorDate, anchorProgress;
-        //protected InputField idInputField;
         protected readonly List<string> anchorIdsToLocate = new List<string> ();
         protected AnchorLocateCriteria anchorLocateCriteria = null;
         protected CloudSpatialAnchor currentCloudAnchor;
         protected CloudSpatialAnchorWatcher currentWatcher;
         protected GameObject spawnedObject = null;
-        protected Material spawnedObjectMat = null;
         protected bool enoughCollected = false;
 
         #endregion // Member Variables
@@ -419,9 +417,6 @@ namespace Microsoft.Azure.SpatialAnchors.Unity {
             // and native anchors in sync.
             newGameObject.AddComponent<CloudNativeAnchor> ();
 
-            // Set the color
-            //newGameObject.GetComponent<MeshRenderer>().material.color = GetStepColor();
-
             // Return created object
             return newGameObject;
         }
@@ -441,7 +436,6 @@ namespace Microsoft.Azure.SpatialAnchors.Unity {
 
                 //Konstruktor geht nicht!
                 AnchorData data = newGameObject.GetComponent<AnchorData> ();
-                //data = new AnchorData(cloudSpatialAnchor.Identifier, cloudSpatialAnchor.AppProperties[@"name"], cloudSpatialAnchor.AppProperties[@"description"]);
 
                 data.AnchorName = cloudSpatialAnchor.AppProperties[@"name"];
                 data.AnchorId = cloudSpatialAnchor.AppProperties[@"id"];
@@ -451,8 +445,9 @@ namespace Microsoft.Azure.SpatialAnchors.Unity {
                 data.AnchorProgress = cloudSpatialAnchor.AppProperties[@"progress"];
                 data.AnchorPosition = cloudSpatialAnchor.AppProperties[@"position"];
                 data.AnchorRotation = cloudSpatialAnchor.AppProperties[@"rotation"];
-
-                feedbackBox.text += "AnchorData Speichern - Name: " + newGameObject.GetComponent<AnchorData> ().AnchorName + ". ";
+                
+                data.AnchorPositionLocalization = worldPos.ToString();
+                data.AnchorRotationLocalization = worldRot.ToString();
             }
 
             // If a cloud anchor is passed, apply it to the native anchor
@@ -460,11 +455,7 @@ namespace Microsoft.Azure.SpatialAnchors.Unity {
                 //Here ID goes missing!!! 
                 CloudNativeAnchor cloudNativeAnchor = newGameObject.GetComponent<CloudNativeAnchor> ();
                 cloudNativeAnchor.CloudToNative (cloudSpatialAnchor);
-                //feedbackBox.text += "ID bei Spawn: "+ cloudNativeAnchor.CloudAnchor.Identifier;
             }
-
-            // Set color
-            //newGameObject.GetComponent<MeshRenderer>().material.color = GetStepColor();
 
             // Return newly created object
             return newGameObject;
@@ -515,11 +506,6 @@ namespace Microsoft.Azure.SpatialAnchors.Unity {
 
         private void CloudManager_LogDebug (object sender, OnLogDebugEventArgs args) {
             Debug.Log (args.Message);
-        }
-
-        protected struct DemoStepParams {
-            public Color StepColor { get; set; }
-            public string StepMessage { get; set; }
         }
 
         #region Public Properties

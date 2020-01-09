@@ -23,6 +23,10 @@ using Microsoft.Azure.SpatialAnchors.Unity.Android;
 using UnityEngine.XR.WSA;
 #endif
 
+//***********************************************************************************************************************
+// Changes in Code by Corinna Braun (marked), 09.01.2020, Master Thesis Media and Computer Sciene, Furtwangen University
+//***********************************************************************************************************************
+
 namespace Microsoft.Azure.SpatialAnchors.Unity {
     /// <summary>
     /// Defines the various authentication methods.
@@ -61,10 +65,14 @@ namespace Microsoft.Azure.SpatialAnchors.Unity {
         internal static ARReferencePointManager arReferencePointManager = null;
         private ARCameraManager arCameraManager = null;
         private ARSession arSession = null;
+        private Camera mainCamera;
+
+        // Code Change by Corinna Braun *********************
         private ARSessionOrigin aRSessionOrigin = null;
         private ARPointCloud pointCloud;
         private List<Vector3> featurePoints;
-        private Camera mainCamera;
+        //***************************************************
+
 #endif // UNITY_ANDROID
 
         #endregion // Member Variables
@@ -571,7 +579,10 @@ namespace Microsoft.Azure.SpatialAnchors.Unity {
             mainCamera = Camera.main;
             arCameraManager = FindObjectOfType<ARCameraManager> ();
             arSession = FindObjectOfType<ARSession> ();
+
+            // Code Change by Corinna Braun *********************
             aRSessionOrigin = FindObjectOfType<ARSessionOrigin> ();
+            //***************************************************
 
             //pointCloudManager = FindObjectOfType<ARPointCloudManager>();
             Debug.Log ("arSession: " + arSession);
@@ -597,6 +608,7 @@ namespace Microsoft.Azure.SpatialAnchors.Unity {
 #if UNITY_ANDROID || UNITY_IOS
             ProcessPendingEventArgs ();
 
+            // Code Change by Corinna Braun *************************************************************
             if (pointCloud == null) {
                 pointCloud = aRSessionOrigin.trackablesParent.GetComponentInChildren<ARPointCloud> ();
             } else {
@@ -604,6 +616,7 @@ namespace Microsoft.Azure.SpatialAnchors.Unity {
                     featurePoints = new List<Vector3> (pointCloud.positions);
                 }
             }
+            //*********************************************************************************************
 #endif
         }
         #endregion // Unity Overrides
@@ -1014,8 +1027,11 @@ namespace Microsoft.Azure.SpatialAnchors.Unity {
         /// </summary>
         public string TenantId { get { return tenantId; } set { tenantId = value; } }
 
+        // Code Change by Corinna Braun *********************************************************************
         public ARPointCloud PointCloud { get { return pointCloud; } set { pointCloud = value; } }
         public List<Vector3> FeaturePoints { get { return featurePoints; } set { featurePoints = value; } }
+        //***************************************************************************************************
+
         #endregion // Public Properties
 
         #region Public Events

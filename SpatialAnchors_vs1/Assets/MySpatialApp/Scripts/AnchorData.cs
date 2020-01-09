@@ -5,12 +5,11 @@ using UnityEngine;
 
 namespace Microsoft.Azure.SpatialAnchors.Unity
 {
-
-
     public class AnchorData : MonoBehaviour
     {
-        private string anchorKey, anchorName, anchorId, anchorDate, anchorDescription, anchorInfo, anchorProgress, anchorPosition, anchorRotation;
-        // Start is called before the first frame update
+        private string anchorKey, anchorName, anchorId, anchorDate;
+        private string anchorDescription, anchorInfo, anchorProgress; 
+        private string anchorPosition, anchorRotation, anchorPositionLocalization, anchorRotationLocalization;
 
         public string AnchorKey { get => anchorKey; set => anchorKey = value; }
         public string AnchorName { get => anchorName; set => anchorName = value; }
@@ -20,6 +19,8 @@ namespace Microsoft.Azure.SpatialAnchors.Unity
         public string AnchorProgress{ get => anchorProgress; set => anchorProgress = value; }
         public string AnchorDescription { get => anchorDescription; set => anchorDescription = value; }
         public string AnchorPosition { get => anchorPosition; set => anchorPosition = value; }
-         public string AnchorRotation { get => anchorRotation; set => anchorRotation = value; }
+        public string AnchorRotation { get => anchorRotation; set => anchorRotation = value; }
+        public string AnchorPositionLocalization { get => anchorPositionLocalization; set => anchorPositionLocalization = value; }
+        public string AnchorRotationLocalization { get => anchorRotationLocalization; set => anchorRotationLocalization = value; }
     }
 }
