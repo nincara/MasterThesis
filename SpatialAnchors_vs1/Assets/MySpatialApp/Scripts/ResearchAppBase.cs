@@ -9,6 +9,7 @@ using UnityEngine.UI;
 
 namespace Microsoft.Azure.SpatialAnchors.Unity {
     public abstract class ResearchAppBase : MyInputInteractionBase {
+
         #region Member Variables
         protected bool isErrorActive = false;
         protected Text feedbackBox, feedbackBoxExtra, speechBubbleText;
@@ -99,7 +100,6 @@ namespace Microsoft.Azure.SpatialAnchors.Unity {
 
             anchorLocateCriteria = new AnchorLocateCriteria ();
             base.Start ();
-
         }
 
         /// <summary>
@@ -109,7 +109,6 @@ namespace Microsoft.Azure.SpatialAnchors.Unity {
         public async void ReturnToLauncher ()
 #pragma warning restore CS1998
         {
-            // Return to the launcher scene
             SceneManager.LoadScene (0);
             
             CloudManager.DestroySession();
@@ -125,6 +124,8 @@ namespace Microsoft.Azure.SpatialAnchors.Unity {
             }
         }
 
+#region Anchor Locate Criteria
+
         protected CloudSpatialAnchorWatcher CreateWatcher () {
             if ((CloudManager != null) && (CloudManager.Session != null)) {
                 return CloudManager.Session.CreateWatcher (anchorLocateCriteria);
@@ -135,18 +136,8 @@ namespace Microsoft.Azure.SpatialAnchors.Unity {
 
         public void SetIdCriteria (string[] criteria) {
             ResetAnchorIdsToLocate ();
-            //anchorLocateCriteria.RequestedCategories = AnchorDataCategory.Properties;
             anchorLocateCriteria.Identifiers = criteria;
 
-        }
-        protected void SetAnchorIdsToLocate (IEnumerable<string> anchorIds) {
-            if (anchorIds == null) {
-                throw new ArgumentNullException (nameof (anchorIds));
-            }
-
-            anchorIdsToLocate.Clear ();
-            anchorIdsToLocate.AddRange (anchorIds);
-            anchorLocateCriteria.Identifiers = anchorIdsToLocate.ToArray ();
         }
 
         protected void ResetAnchorIdsToLocate () {
@@ -182,6 +173,10 @@ namespace Microsoft.Azure.SpatialAnchors.Unity {
             anchorLocateCriteria.BypassCache = BypassCache;
         }
 
+#endregion Anchor Locate Criteria
+
+#region Placing Anchor
+
         /// <summary>
         /// Determines whether the demo is in a mode that should place an object.
         /// </summary>
@@ -215,6 +210,10 @@ namespace Microsoft.Azure.SpatialAnchors.Unity {
             }
         }
 
+#endregion Placing Anchor
+
+#region Cloud Anchor Actions
+
         /// <summary>
         /// Called when a cloud anchor is located.
         /// </summary>
@@ -239,6 +238,30 @@ namespace Microsoft.Azure.SpatialAnchors.Unity {
         }
 
         /// <summary>
+        /// Called when a cloud anchor is not saved successfully.
+        /// </summary>
+        /// <param name="exception">The exception.</param>
+        protected virtual void OnSaveCloudAnchorFailed (Exception exception) {
+            // we will block the next step to show the exception message in the UI.
+            isErrorActive = true;
+            Debug.LogException (exception);
+            Debug.Log ("Failed to save anchor " + exception.ToString ());
+
+            UnityDispatcher.InvokeOnAppThread (() => this.feedbackBox.text = string.Format ("Error: {0}", exception.ToString ()));
+        }
+
+        /// <summary>
+        /// Called when a cloud anchor is saved successfully.
+        /// </summary>
+        protected virtual Task OnSaveCloudAnchorSuccessfulAsync () {
+            // To be overridden.
+            return Task.CompletedTask;
+        }
+
+#endregion Cloud Anchor Actions
+
+#region Input Interaction Overrides
+        /// <summary>
         /// Called when gaze interaction occurs.
         /// </summary>
         protected override void OnGazeInteraction () {
@@ -262,27 +285,6 @@ namespace Microsoft.Azure.SpatialAnchors.Unity {
             Quaternion rotation = Quaternion.FromToRotation (Vector3.up, hitNormal);
             SpawnOrMoveCurrentAnchoredObject (hitPoint, rotation);
 #endif
-        }
-
-        /// <summary>
-        /// Called when a cloud anchor is not saved successfully.
-        /// </summary>
-        /// <param name="exception">The exception.</param>
-        protected virtual void OnSaveCloudAnchorFailed (Exception exception) {
-            // we will block the next step to show the exception message in the UI.
-            isErrorActive = true;
-            Debug.LogException (exception);
-            Debug.Log ("Failed to save anchor " + exception.ToString ());
-
-            UnityDispatcher.InvokeOnAppThread (() => this.feedbackBox.text = string.Format ("Error: {0}", exception.ToString ()));
-        }
-
-        /// <summary>
-        /// Called when a cloud anchor is saved successfully.
-        /// </summary>
-        protected virtual Task OnSaveCloudAnchorSuccessfulAsync () {
-            // To be overridden.
-            return Task.CompletedTask;
         }
 
         /// <summary>
@@ -322,6 +324,9 @@ namespace Microsoft.Azure.SpatialAnchors.Unity {
             }
         }
 
+#endregion Input Interaction Overrides
+
+#region Progress Data Collection
         protected bool CollectCreateProgressData () {
             if (enoughCollected == false) {
                 return false;
@@ -332,8 +337,10 @@ namespace Microsoft.Azure.SpatialAnchors.Unity {
 
         public void EnoughCollected () {
             enoughCollected = true;
-            
         }
+#endregion Progress Data Collection
+
+#region Save and Spawn Anchors
 
         /// <summary>
         /// Saves the current object anchor to the cloud.
@@ -482,6 +489,9 @@ namespace Microsoft.Azure.SpatialAnchors.Unity {
             }
         }
 
+#endregion Save and Spawn Anchors
+
+#region Events
         private void CloudManager_AnchorLocated (object sender, AnchorLocatedEventArgs args) {
             Debug.LogFormat ("Anchor recognized as a possible anchor {0} {1}", args.Identifier, args.Status);
             if (args.Status == LocateAnchorStatus.Located) {
@@ -508,7 +518,9 @@ namespace Microsoft.Azure.SpatialAnchors.Unity {
             Debug.Log (args.Message);
         }
 
-        #region Public Properties
+#endregion Events
+
+#region Public Properties
         /// <summary>
         /// Gets the prefab used to represent an anchored object.
         /// </summary>
@@ -518,6 +530,6 @@ namespace Microsoft.Azure.SpatialAnchors.Unity {
         /// Gets the <see cref="SpatialAnchorManager"/> instance used by this demo.
         /// </summary>
         public SpatialAnchorManager CloudManager { get { return cloudManager; } }
-        #endregion // Public Properties
+#endregion // Public Properties
     }
 }
