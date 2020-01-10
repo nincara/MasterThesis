@@ -111,6 +111,9 @@ namespace Microsoft.Azure.SpatialAnchors.Unity {
                 maxFeaturePoints = CloudManager.FeaturePoints.Count;
                 feedbackBox.text += "Max Feature Point: " + maxFeaturePoints + ". ";
             }
+#if !UNITY_EDITOR
+            feedbackBoxExtra.text = "Anchor Exchanger: " + anchorExchanger.AnchorKeys.Count;
+#endif
 
             base.Update ();
         }
