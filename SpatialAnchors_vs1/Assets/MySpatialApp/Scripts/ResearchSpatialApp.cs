@@ -99,7 +99,7 @@ namespace Microsoft.Azure.SpatialAnchors.Unity {
         public override void Update () {
 
             if (IsPlacingObject () && CloudManager.FeaturePoints != null) {
-                feedbackBoxExtra.text = $"PointCloud: {CloudManager.FeaturePoints.Count}";
+                //feedbackBoxExtra.text = $"PointCloud: {CloudManager.FeaturePoints.Count}";
             }
 
             if (currentAppState == AppState.LookingForAnchor) {
@@ -109,11 +109,8 @@ namespace Microsoft.Azure.SpatialAnchors.Unity {
             if (CloudManager.FeaturePoints.Count > maxFeaturePoints && CloudManager.FeaturePoints != null && currentAppState == AppState.LookingForAnchor) 
             {
                 maxFeaturePoints = CloudManager.FeaturePoints.Count;
-                feedbackBox.text += "Max Feature Point: " + maxFeaturePoints + ". ";
+                //feedbackBox.text += "Max Feature Point: " + maxFeaturePoints + ". ";
             }
-#if !UNITY_EDITOR
-            feedbackBoxExtra.text = "Anchor Exchanger: " + anchorExchanger.AnchorKeys.Count;
-#endif
 
             base.Update ();
         }
@@ -132,7 +129,7 @@ namespace Microsoft.Azure.SpatialAnchors.Unity {
         public void SetPropertiesPanel (GameObject obj)
         {
             AnchorData data = obj.GetComponent<AnchorData> ();
-            feedbackBox.text += "AnchorData Abrufen - Name " + data.AnchorName + ". ";
+            //feedbackBox.text += "AnchorData Abrufen - Name " + data.AnchorName + ". ";
 
             if (data.AnchorName != null) {
 
@@ -146,7 +143,7 @@ namespace Microsoft.Azure.SpatialAnchors.Unity {
                 uiHandler.positionOutput.text = data.AnchorPosition;
                 uiHandler.rotationOutput.text = data.AnchorRotation;
 
-                feedbackBox.text = "Position: " + data.AnchorPositionLocalization + ", Rotation: " + data.AnchorRotationLocalization + ". ";
+                //feedbackBox.text = "Position: " + data.AnchorPositionLocalization + ", Rotation: " + data.AnchorRotationLocalization + ". ";
 
                 SaveDataToJson saveObject = new SaveDataToJson();
                 float progressLooking = CloudManager.SessionStatus.RecommendedForCreateProgress;
@@ -184,13 +181,13 @@ namespace Microsoft.Azure.SpatialAnchors.Unity {
         public void switchUiElements () {
             switch (currentAppState) {
                 case AppState.LoadingKeys:
-                    feedbackBox.text += "Switch Loading Keys";
+                    //feedbackBox.text += "Switch Loading Keys";
                     uiHandler.placingButton.interactable = false; ///// Wait for App Loaded
                     uiHandler.localizeButton.interactable = false; ///// Wait for App Loaded
 
                     break;
                 case AppState.Default:
-                    feedbackBox.text += "Switch Default";
+                    //feedbackBox.text += "Switch Default";
                     if (!uiHandler.placingButton.gameObject.activeSelf) {
                         uiHandler.placingButton.gameObject.SetActive (true);
                         uiHandler.localizeButton.gameObject.SetActive (true);
@@ -259,7 +256,7 @@ namespace Microsoft.Azure.SpatialAnchors.Unity {
             string _lastAnchorId = await anchorExchanger.RetrieveLastAnchorKey ();
             string _currentAnchorId;
 
-            feedbackBoxExtra.text += "Last Key: " + _lastAnchorId + ". ";
+            //feedbackBoxExtra.text += "Last Key: " + _lastAnchorId + ". ";
 
             if (!String.IsNullOrWhiteSpace (_lastAnchorId)) {
                 //Loop, that counts all numbers, till last key is reached -> get last key-number
@@ -393,7 +390,7 @@ namespace Microsoft.Azure.SpatialAnchors.Unity {
         }
 
         public async void DonePlacingObjects () {
-            feedbackBox.text = "Currend App State: " + currentAppState + ". ";
+            //feedbackBox.text = "Currend App State: " + currentAppState + ". ";
             if (currentAppState == AppState.InputAnchorData) {
                 currentAppState = AppState.SavingAnchor;
                 switchUiElements ();

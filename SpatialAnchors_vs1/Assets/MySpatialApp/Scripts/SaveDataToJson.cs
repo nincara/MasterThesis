@@ -56,8 +56,8 @@ namespace Microsoft.Azure.SpatialAnchors.Unity {
             rotation.Add (rotationVector.y);
             rotation.Add (rotationVector.z);
 
-            dataJson.Add ("Position", position);
-            dataJson.Add ("Rotation", rotation);
+            dataJson.Add ("PositionGenerate", position);
+            dataJson.Add ("RotationGenerate", rotation);
 
             positionVectorLocalize = StringToVector3(data.AnchorPositionLocalization);
             rotationVectorLocalize = StringToVector3(data.AnchorRotationLocalization);
