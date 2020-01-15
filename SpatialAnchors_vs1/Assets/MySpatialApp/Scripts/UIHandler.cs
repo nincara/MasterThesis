@@ -13,7 +13,7 @@ namespace Microsoft.Azure.SpatialAnchors.Unity
         public GameObject toggleCanvas, toggleOutput, toggleIdInput;
         public Text nameOutput, idOutput, dateOutput, secondsOutput, infoOutput, progressOutput, keyOutput;
         public Text positionOutput, rotationOutput;
-        public InputField nameInput, idInput, infoInput, idInputLocalize;
+        public InputField nameInput, idInput, infoInput, idInputLocalize, testPhaseInput;
         // Start is called before the first frame update
         void Start()
         {
@@ -36,6 +36,7 @@ namespace Microsoft.Azure.SpatialAnchors.Unity
 
             ////// ID to localize input at the beginning
             idInputLocalize = GameObject.Find("IdInputLocalize").GetComponent<InputField>();
+            testPhaseInput = GameObject.Find("TestPhaseInput").GetComponent<InputField>();
             toggleIdInput = GameObject.Find("IdInputCanvas");
 
             // Input Output Canvas

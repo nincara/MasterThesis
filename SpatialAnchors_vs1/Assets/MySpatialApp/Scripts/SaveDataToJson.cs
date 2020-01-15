@@ -27,7 +27,7 @@ namespace Microsoft.Azure.SpatialAnchors.Unity {
             return result;
         }
 
-        public void SaveData (GameObject dataObject, string seconds, string progress, int maxFeaturePoints) {
+        public void SaveData (GameObject dataObject, string seconds, string progress, int maxFeaturePoints, string testPhase) {
             AnchorData data = dataObject.GetComponent<AnchorData> ();
 
             JSONObject dataJson = new JSONObject ();
@@ -36,12 +36,9 @@ namespace Microsoft.Azure.SpatialAnchors.Unity {
             dataJson.Add ("Key", data.AnchorKey);
             dataJson.Add ("Date", data.AnchorDate);
             dataJson.Add ("Info", data.AnchorInfo);
-            dataJson.Add ("GenerateSeconds", data.AnchorGenerateMilliseconds);
-            dataJson.Add ("LocalizeSeconds", seconds);
-            dataJson.Add ("Progress", data.AnchorProgress);
-            dataJson.Add ("LookingProgress", progress);
-            dataJson.Add("GenerateFeaturePoints", data.AnchorFeaturePoints);
-            dataJson.Add("LocalizeFeaturePoints", maxFeaturePoints);
+            dataJson.Add ("GenerateSeconds", data.AnchorGenerateMilliseconds);  
+            dataJson.Add ("GenerateProgress", data.AnchorProgress);
+            dataJson.Add ("GenerateFeaturePoints", data.AnchorFeaturePoints);
             
             positionVector = StringToVector3 (data.AnchorPosition);
             rotationVector = StringToVector3 (data.AnchorRotation);
@@ -56,8 +53,14 @@ namespace Microsoft.Azure.SpatialAnchors.Unity {
             rotation.Add (rotationVector.y);
             rotation.Add (rotationVector.z);
 
-            dataJson.Add ("PositionGenerate", position);
-            dataJson.Add ("RotationGenerate", rotation);
+            dataJson.Add ("GeneratePosition", position);
+            dataJson.Add ("GenerateRotation", rotation);
+
+            dataJson.Add("TestPhase", testPhase);
+
+            dataJson.Add ("LocalizeSeconds", seconds);
+            dataJson.Add ("LocalizeProgress", progress);
+            dataJson.Add ("LocalizeFeaturePoints", maxFeaturePoints);
 
             positionVectorLocalize = StringToVector3(data.AnchorPositionLocalization);
             rotationVectorLocalize = StringToVector3(data.AnchorRotationLocalization);
@@ -72,12 +75,47 @@ namespace Microsoft.Azure.SpatialAnchors.Unity {
             localizeRotationArray.Add (rotationVectorLocalize.y);
             localizeRotationArray.Add (rotationVectorLocalize.z);
 
-            dataJson.Add ("PositionLocalize", localizePositionArray);
-            dataJson.Add ("RotationLocalize", localizeRotationArray);
+            dataJson.Add ("LocalizePosition", localizePositionArray);
+            dataJson.Add ("LocalizeRotation", localizeRotationArray);
 
             string date = System.DateTime.Now.ToString("yyyy'-'MM'-'dd'_'HH'-'mm'-'ss");
 
             string path = Application.persistentDataPath + "/DataSave" + data.AnchorId + "_" + date + ".json";
+            File.WriteAllText (path, dataJson.ToString ());
+        }
+
+        public void SaveDataGenerate (CloudSpatialAnchor dataObject) {
+            //AnchorData data = dataObject.GetComponent<AnchorData> ();
+
+            JSONObject dataJson = new JSONObject ();
+            dataJson.Add ("Name", dataObject.AppProperties[@"name"]);
+            dataJson.Add ("ID", dataObject.AppProperties[@"id"]);
+            dataJson.Add ("Key", dataObject.Identifier);
+            dataJson.Add ("Date", dataObject.AppProperties[@"date"]);
+            dataJson.Add ("Info", dataObject.AppProperties[@"info"]);
+            dataJson.Add ("GenerateSeconds", dataObject.AppProperties[@"generateMilliseconds"]);
+            dataJson.Add ("GenerateProgress", dataObject.AppProperties[@"progress"]);
+            dataJson.Add ("GenerateFeaturePoints", dataObject.AppProperties[@"featurePoints"]);
+            
+            positionVector = StringToVector3 (dataObject.AppProperties[@"position"]);
+            rotationVector = StringToVector3 (dataObject.AppProperties[@"rotation"]);
+
+            JSONArray position = new JSONArray ();
+            position.Add (positionVector.x);
+            position.Add (positionVector.y);
+            position.Add (positionVector.z);
+
+            JSONArray rotation = new JSONArray ();
+            rotation.Add (rotationVector.x);
+            rotation.Add (rotationVector.y);
+            rotation.Add (rotationVector.z);
+
+            dataJson.Add ("GeneratePosition", position);
+            dataJson.Add ("GenerateRotation", rotation);
+
+            string date = System.DateTime.Now.ToString("yyyy'-'MM'-'dd'_'HH'-'mm'-'ss");
+
+            string path = Application.persistentDataPath + "/DataSaveGenerate" + dataObject.AppProperties[@"id"] + "_" + date + ".json";
             File.WriteAllText (path, dataJson.ToString ());
         }
     }
