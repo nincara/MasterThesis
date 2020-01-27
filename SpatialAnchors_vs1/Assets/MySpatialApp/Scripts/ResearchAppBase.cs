@@ -114,9 +114,8 @@ namespace Microsoft.Azure.SpatialAnchors.Unity {
         public async void ReturnToLauncher ()
 #pragma warning restore CS1998
         {
-            SceneManager.LoadScene (0);
-            
             CloudManager.DestroySession();
+            SceneManager.LoadScene (0);
         }
 
         /// <summary>
