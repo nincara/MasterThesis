@@ -273,14 +273,6 @@ namespace Microsoft.Azure.SpatialAnchors.Unity {
                     }
 
                         feedbackBoxExtra.text += "Last Key has number: " + _anchorNumber + ". ";
-
-                        //Backwards: counts from last key-number down, till 0 reached. Stores all key-sequenzes in a List.
-                        /*while (_anchorNumber >= 0) {
-                            if (!string.IsNullOrWhiteSpace (await anchorExchanger.RetrieveAnchorKey (_anchorNumber))) {
-                                anchorList.Add (await anchorExchanger.RetrieveAnchorKey (_anchorNumber));
-                                _anchorNumber--;
-                            }
-                        }*/
                         feedbackBoxExtra.text += "All Keys saved. Total: " + anchorList.Count + ". ";
                     } else {
                         feedbackBox.text += "No Keys found.";
