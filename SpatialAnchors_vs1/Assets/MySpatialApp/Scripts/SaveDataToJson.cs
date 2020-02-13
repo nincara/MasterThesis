@@ -80,7 +80,7 @@ namespace Microsoft.Azure.SpatialAnchors.Unity {
 
             string date = System.DateTime.Now.ToString("yyyy'-'MM'-'dd'_'HH'-'mm'-'ss");
 
-            string path = Application.persistentDataPath + "/DataSave" + data.AnchorId + "_" + date + ".json";
+            string path = Application.persistentDataPath + "/DataSave" + testPhase + "_" + data.AnchorId + "_" + date + ".json";
             File.WriteAllText (path, dataJson.ToString ());
         }
 

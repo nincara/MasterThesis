@@ -554,7 +554,7 @@ MonoBehaviour:
     m_HorizontalOverflow: 0
     m_VerticalOverflow: 0
     m_LineSpacing: 1
-  m_Text: Rotation
+  m_Text: 'Generate F P '
 --- !u!222 &41833785
 CanvasRenderer:
   m_ObjectHideFlags: 0
@@ -870,7 +870,7 @@ MonoBehaviour:
     m_HorizontalOverflow: 0
     m_VerticalOverflow: 0
     m_LineSpacing: 1
-  m_Text: Position
+  m_Text: Max Feature P
 --- !u!222 &100271883
 CanvasRenderer:
   m_ObjectHideFlags: 0
@@ -3608,7 +3608,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 4788106853232966, guid: 875e20bc05b248d4a80ced8911161b1c, type: 3}
       propertyPath: m_RootOrder
-      value: 2
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 4788106853232966, guid: 875e20bc05b248d4a80ced8911161b1c, type: 3}
       propertyPath: m_LocalEulerAnglesHint.x
@@ -4036,7 +4036,7 @@ Transform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 0}
-  m_RootOrder: 1
+  m_RootOrder: 2
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!114 &1014105874
 MonoBehaviour:
