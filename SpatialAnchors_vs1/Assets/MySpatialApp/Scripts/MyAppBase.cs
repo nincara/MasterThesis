@@ -1,5 +1,7 @@
 ﻿// Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT license.
+// Used and adapted by Corinna Braun as part of an 
+// examination for her masterthesis.
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;

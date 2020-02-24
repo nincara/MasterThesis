@@ -1,4 +1,5 @@
-﻿using System.Collections;
+﻿// Copyright (c) Corinna Braun.
+using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using SimpleJSON;
