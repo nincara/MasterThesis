@@ -76,6 +76,9 @@ namespace Microsoft.Azure.SpatialAnchors.Unity {
             feedbackBoxExtra = GameObject.Find ("Textfield_Extra").GetComponent<Text> ();
             speechBubbleText = GameObject.Find ("InfoSpeechBubble_Text").GetComponent<Text> ();
 
+            feedbackBox.enabled = false;
+            feedbackBoxExtra.enabled = false;
+
             if (feedbackBox == null) {
                 UnityEngine.Debug.Log ($"{nameof(feedbackBox)} not found in scene by XRUXPicker.");
                 Destroy (this);
@@ -339,7 +342,8 @@ namespace Microsoft.Azure.SpatialAnchors.Unity {
             }
         }
 
-        public void EnoughCollected () {
+        public virtual void EnoughCollected () {
+
             enoughCollected = true;
         }
 #endregion Progress Data Collection
@@ -456,9 +460,13 @@ namespace Microsoft.Azure.SpatialAnchors.Unity {
             // Create the object like usual
             GameObject newGameObject = SpawnNewAnchoredObject (worldPos, worldRot);
             if (!IsPlacingObject ()) {
-                //Save Data in AnchorData Script on spawned Object
+                
+                // Check if GameObject has AnchorData, if not, add it
+                if(newGameObject.GetComponent<AnchorData>() == null) {
+                    newGameObject.AddComponent<AnchorData>();
+                }
 
-                //Konstruktor geht nicht!
+                //Save Data in AnchorData Script on spawned Object
                 AnchorData data = newGameObject.GetComponent<AnchorData> ();
 
                 data.AnchorName = cloudSpatialAnchor.AppProperties[@"name"];

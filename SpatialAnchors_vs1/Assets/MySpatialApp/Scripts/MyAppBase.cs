@@ -21,7 +21,6 @@ namespace Microsoft.Azure.SpatialAnchors.Unity
         protected CloudSpatialAnchor currentCloudAnchor;
         protected CloudSpatialAnchorWatcher currentWatcher;
         protected GameObject spawnedObject = null;
-        protected Material spawnedObjectMat = null;
         #endregion // Member Variables
 
         #region Unity Inspector Variables
@@ -77,6 +76,9 @@ namespace Microsoft.Azure.SpatialAnchors.Unity
             feedbackBox = GameObject.Find("Textfield").GetComponent<Text>();
             feedbackBoxExtra = GameObject.Find("Textfield_Extra").GetComponent<Text>();
             speechBubbleText = GameObject.Find("InfoSpeechBubble_Text").GetComponent<Text>();
+
+            feedbackBox.enabled = false;
+            feedbackBoxExtra.enabled = false;
 
             if (feedbackBox == null)
             {
@@ -417,7 +419,6 @@ namespace Microsoft.Azure.SpatialAnchors.Unity
                 cloudAnchor.AppProperties.Add(@"description", anchorDescription);
 
                 // Actually save
-
                 await CloudManager.CreateAnchorAsync(cloudAnchor);
 
                 // Store
@@ -477,17 +478,28 @@ namespace Microsoft.Azure.SpatialAnchors.Unity
         {
             // Create the object like usual
             GameObject newGameObject = SpawnNewAnchoredObject(worldPos, worldRot);
+            
+            // comment the following if-statement to deactivate the AppPropeties functionality. 
+            // Touching an localized anchor shows the AnchorName and the AnchorDescription.
+            // During development, there where troubles with Azure and the optaining of AppProperties
+            // So Attention here!
+
             if (!IsPlacingObject())
             {
-                //Save Data in AnchorData Script on spawned Object
+                // Check if GameObject has AnchorData, if not, add it
+                if(newGameObject.GetComponent<AnchorData>() == null) {
+                    newGameObject.AddComponent<AnchorData>();
+                }
 
-                //Konstruktor geht nicht!
+                Debug.Log("Started Anchor Data Saving.");
+                
+                //Save Data in AnchorData Script on spawned Object
                 AnchorData data = newGameObject.GetComponent<AnchorData>();
-                //data = new AnchorData(cloudSpatialAnchor.Identifier, cloudSpatialAnchor.AppProperties[@"name"], cloudSpatialAnchor.AppProperties[@"description"]);
 
                 data.AnchorName = cloudSpatialAnchor.AppProperties[@"name"];
                 data.AnchorDescription = cloudSpatialAnchor.AppProperties[@"description"];
-                data.AnchorId = cloudSpatialAnchor.Identifier;
+
+                Debug.Log("Anchor Data saved for: " +  data.AnchorName + ", Description: " + data.AnchorDescription + ". ");
             }
 
             // If a cloud anchor is passed, apply it to the native anchor

@@ -94,8 +94,6 @@ namespace Microsoft.Azure.SpatialAnchors.Unity {
 #endif
             switchUiElements ();
             StoreAllAnchorKeys ();
-
-            speechBubbleText.text = "App loaded successfully.";
         }
 
         public override void Update () {
@@ -104,12 +102,22 @@ namespace Microsoft.Azure.SpatialAnchors.Unity {
                 speechBubbleText.text = $"Progress: {CloudManager.SessionStatus.RecommendedForCreateProgress:0%}. ";
             }
 
-            if (CloudManager.FeaturePoints.Count > maxFeaturePoints && CloudManager.FeaturePoints != null && currentAppState == AppState.LookingForAnchor) {
+            if (CloudManager.FeaturePoints.Count > maxFeaturePoints && CloudManager.FeaturePoints != null) {
                 maxFeaturePoints = CloudManager.FeaturePoints.Count;
-                //feedbackBox.text += "Max Feature Point: " + maxFeaturePoints + ". ";
+            }
+
+            if (CloudManager.SessionStatus != null) {
+                if (CloudManager.SessionStatus.RecommendedForCreateProgress >= 1) {
+                    uiHandler.finishCollecting.interactable = true;
+                }
             }
 
             base.Update ();
+        }
+
+        public override void EnoughCollected () {
+            uiHandler.finishCollecting.interactable = false;
+            base.EnoughCollected ();
         }
 
         //////////////////////////////////////////////////////////////////////
@@ -123,69 +131,22 @@ namespace Microsoft.Azure.SpatialAnchors.Unity {
             feedbackBoxExtra.enabled = !feedbackBoxExtra.enabled;
         }
 
-        public void SetPropertiesPanel (GameObject obj) {
-            AnchorData data = obj.GetComponent<AnchorData> ();
-            //feedbackBox.text += "AnchorData Abrufen - Name " + data.AnchorName + ". ";
-
-            if (data.AnchorName != null) {
-
-                uiHandler.nameOutput.text = data.AnchorName;
-                uiHandler.idOutput.text = data.AnchorId;
-                uiHandler.infoInput.text = data.AnchorInfo;
-                uiHandler.secondsOutput.text = elapsedSeconds.ToString ();
-                uiHandler.dateOutput.text = data.AnchorDate;
-                uiHandler.progressOutput.text = data.AnchorProgress;
-                uiHandler.keyOutput.text = data.AnchorKey;
-                uiHandler.positionOutput.text = maxFeaturePoints.ToString ();
-                uiHandler.rotationOutput.text = data.AnchorFeaturePoints;
-
-                //feedbackBox.text = "Position: " + data.AnchorPositionLocalization + ", Rotation: " + data.AnchorRotationLocalization + ". ";
-
-                SaveDataToJson saveObject = new SaveDataToJson ();
-                float progressLooking = CloudManager.SessionStatus.RecommendedForCreateProgress;
-
-                saveObject.SaveData (obj, elapsedSeconds.ToString (), progressLooking.ToString (), maxFeaturePoints, testPhase);
-                feedbackBox.text += "Data saved. ";
-                testPhase = "";
-                anchorIdToLocate = "";
-
-            } else {
-                feedbackBox.text += "Daten wurden nicht gespeichert.";
-            }
-        }
-
         public void ToggleControll () {
-            switch (currentAppState) {
-                case AppState.PlacingAnchor:
-                    currentAppState = AppState.InputAnchorData;
-                    break;
-                case AppState.FoundAnchor:
-                    currentAppState = AppState.ShowAnchorData;
-                    break;
-                case AppState.ShowAnchorData:
-                    currentAppState = AppState.FoundAnchor;
-                    break;
-                case AppState.Default:
-                    if (EventSystem.current.currentSelectedGameObject.name == "ButtonPlacing") { currentAppState = AppState.InputAnchorData; }
-                    if (EventSystem.current.currentSelectedGameObject.name == "ButtonLocalize") { currentAppState = AppState.InputAnchorDataLocalize; }
-                    break;
-                default:
-                    feedbackBox.text = "Nothing to toggle.";
-                    return;
-            }
+
+            if (EventSystem.current.currentSelectedGameObject.name == "ButtonPlacing") { currentAppState = AppState.InputAnchorData; }
+            if (EventSystem.current.currentSelectedGameObject.name == "ButtonLocalize") { currentAppState = AppState.InputAnchorDataLocalize; }
+
             switchUiElements ();
         }
 
         public void switchUiElements () {
             switch (currentAppState) {
                 case AppState.LoadingKeys:
-                    //feedbackBox.text += "Switch Loading Keys";
                     uiHandler.placingButton.interactable = false; ///// Wait for App Loaded
                     uiHandler.localizeButton.interactable = false; ///// Wait for App Loaded
 
                     break;
                 case AppState.Default:
-                    //feedbackBox.text += "Switch Default";
                     if (!uiHandler.placingButton.gameObject.activeSelf) {
                         uiHandler.placingButton.gameObject.SetActive (true);
                         uiHandler.localizeButton.gameObject.SetActive (true);
@@ -197,7 +158,6 @@ namespace Microsoft.Azure.SpatialAnchors.Unity {
                     if (uiHandler.finishCollecting.gameObject.activeSelf) { uiHandler.finishCollecting.gameObject.SetActive (false); }
                     break;
                 case AppState.PlacingAnchor:
-                    // Deactivate Starting Buttons
                     uiHandler.ToggleInputCanvas ();
                     uiHandler.finishPlacing.gameObject.SetActive (true);
                     break;
@@ -209,6 +169,7 @@ namespace Microsoft.Azure.SpatialAnchors.Unity {
                     break;
                 case AppState.SavingAnchor:
                     uiHandler.finishCollecting.gameObject.SetActive (true);
+                    uiHandler.finishCollecting.interactable = false;
                     uiHandler.finishPlacing.gameObject.SetActive (false);
                     break;
                 case AppState.InputAnchorDataLocalize:
@@ -222,14 +183,18 @@ namespace Microsoft.Azure.SpatialAnchors.Unity {
                     uiHandler.toggleIdInput.SetActive (false);
                     uiHandler.saveIdLocalize.gameObject.SetActive (false);
                     break;
-                case AppState.ShowAnchorData:
-                    SetPropertiesPanel (spawnedObject);
-                    uiHandler.showData.gameObject.SetActive (false);
-                    uiHandler.ToggleOutputCanvas ();
-                    break;
                 case AppState.FoundAnchor:
-                    uiHandler.showData.gameObject.SetActive (true);
+                    uiHandler.finishedLocalize.gameObject.SetActive (true);
                     currentAppState = AppState.ShowAnchorData;
+                    break;
+                case AppState.ShowAnchorData:
+                    SaveDataToJson saveObject = new SaveDataToJson ();
+                    float progressLooking = CloudManager.SessionStatus.RecommendedForCreateProgress;
+
+                    saveObject.SaveData (spawnedObject, elapsedSeconds.ToString (), progressLooking.ToString (), maxFeaturePoints, testPhase);
+
+                    ReturnToLauncher ();
+
                     break;
                 default:
                     break;
@@ -269,6 +234,7 @@ namespace Microsoft.Azure.SpatialAnchors.Unity {
 
                 feedbackBoxExtra.text += "Last Key has number: " + _anchorNumber + ". ";
                 feedbackBoxExtra.text += "All Keys saved. Total: " + anchorList.Count + ". ";
+                speechBubbleText.text = "App loaded successfully.";
             } else {
                 feedbackBox.text += "No Keys found.";
             }
@@ -372,6 +338,13 @@ namespace Microsoft.Azure.SpatialAnchors.Unity {
         }
 
         public async void StartPlacingSession () {
+
+            if (String.IsNullOrWhiteSpace (uiHandler.nameInput.text) ||
+                String.IsNullOrWhiteSpace (uiHandler.idInput.text) ||
+                String.IsNullOrWhiteSpace (uiHandler.infoInput.text)) {
+                uiHandler.attentionText.text = "Please put in the needed information.";
+                return;
+            }
             currentAppState = AppState.PlacingAnchor; ////// App State
 
             anchorName = uiHandler.nameInput.text.ToString ();
