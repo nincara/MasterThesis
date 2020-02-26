@@ -86,7 +86,6 @@ namespace Microsoft.Azure.SpatialAnchors.Unity {
         }
 
         public void SaveDataGenerate (CloudSpatialAnchor dataObject) {
-            //AnchorData data = dataObject.GetComponent<AnchorData> ();
 
             JSONObject dataJson = new JSONObject ();
             dataJson.Add ("Name", dataObject.AppProperties[@"name"]);

@@ -414,7 +414,6 @@ namespace Microsoft.Azure.SpatialAnchors.Unity {
                 SaveDataToJson saveObject = new SaveDataToJson();
 
                 saveObject.SaveDataGenerate(cloudAnchor);
-                feedbackBox.text += "Generated Data saved. ";
 
                 // Success?
                 success = currentCloudAnchor != null;

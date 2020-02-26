@@ -219,7 +219,6 @@ namespace Microsoft.Azure.SpatialAnchors.Unity {
             string _lastAnchorId = await anchorExchanger.RetrieveLastAnchorKey ();
             string _currentAnchorId = "";
 
-            //feedbackBoxExtra.text += "Last Key: " + _lastAnchorId + ". ";
             anchorList.Clear ();
 
             if (!String.IsNullOrWhiteSpace (_lastAnchorId)) {
@@ -242,11 +241,9 @@ namespace Microsoft.Azure.SpatialAnchors.Unity {
             if (currentAppState == AppState.LoadingKeys) {
                 currentAppState = AppState.Default;
                 switchUiElements ();
-                feedbackBox.text = "Welcome!";
             } else if (currentAppState == AppState.SavingAnchor) {
                 currentAppState = AppState.Default;
                 switchUiElements ();
-                feedbackBox.text = "Saving successful.";
             }
 #endif
         }
@@ -335,6 +332,7 @@ namespace Microsoft.Azure.SpatialAnchors.Unity {
             currentCloudAnchor = null;
 
             await CloudManager.StartSessionAsync ();
+            feedbackBox.text += "Session started. ";
         }
 
         public async void StartPlacingSession () {
@@ -359,12 +357,10 @@ namespace Microsoft.Azure.SpatialAnchors.Unity {
 
             await InitializeSession ();
 
-            feedbackBox.text += "Session started. ";
             speechBubbleText.text = "Place an Object now. ";
         }
 
         public async void DonePlacingObjects () {
-            //feedbackBox.text = "Currend App State: " + currentAppState + ". ";
             if (currentAppState == AppState.PlacingAnchor) {
                 currentAppState = AppState.SavingAnchor;
                 switchUiElements ();

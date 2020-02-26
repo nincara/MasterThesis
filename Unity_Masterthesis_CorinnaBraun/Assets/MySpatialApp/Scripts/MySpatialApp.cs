@@ -214,7 +214,7 @@ namespace Microsoft.Azure.SpatialAnchors.Unity {
                 descriptionText.text = anchorDescription;
                 ToggleOutputCanvas ();
             } else {
-                feedbackBox.text += "Daten wurden nicht gespeichert.";
+                feedbackBox.text += "Couldn't save data.";
             }
         }
 
